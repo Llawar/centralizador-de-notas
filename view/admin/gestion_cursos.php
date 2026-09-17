@@ -1,7 +1,8 @@
 <?php
 session_start();
+require_once __DIR__ . '/../../config/app.php';
 if (!isset($_SESSION['user_id']) || $_SESSION['rol'] !== 'admin') {
-    header("Location: /centralizador_notas/index.php?error=session");
+    redirect("/index.php?error=session");
     exit;
 }
 require_once __DIR__ . '/../../config/conexion.php';
@@ -25,7 +26,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         $semestre = ($carreraSel['tipo'] ?? 'anual') === 'semestral' ? (int) ($_POST['semestre'] ?? 1) : 1;
         $cursosModel->crear($_POST['nombre'], $_POST['anio'], $_POST['paralelo'], $_POST['carrera_id'], $_POST['gestion'], $semestre);
-        header("Location: /centralizador_notas/view/admin/gestion_cursos.php?msg=created");
+        redirect("/view/admin/gestion_cursos.php?msg=created");
         exit;
     }
 }
@@ -35,8 +36,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
     <meta charset="UTF-8">
     <title>Gestionar Cursos</title>
-    <link rel="stylesheet" href="/centralizador_notas/css/estilos_menu.css">
-    <script defer src="/centralizador_notas/js/script_menu.js"></script>
+    <link rel="stylesheet" href="<?= BASE_URL ?>/css/estilos_menu.css">
+    <script defer src="<?= BASE_URL ?>/js/script_menu.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/js/all.min.js"></script>
 </head>
 <body>
@@ -46,7 +47,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <div class="top-header">
         <div class="logo-area">
             <button id="sidebar-toggle" type="button" title="Desplegar o contraer el menu" aria-label="Desplegar o contraer el menu" aria-expanded="false"><i class="fas fa-bars"></i></button>
-            <img src="/centralizador_notas/view/img/escudo.jpg" alt="Logo"><span>Instituto Tecnologico PACCIOLI</span>
+            <img src="<?= BASE_URL ?>/view/img/escudo.jpg" alt="Logo"><span>Instituto Tecnologico PACCIOLI</span>
         </div>
         <div class="user-area">
             <span>Bienvenido, <?php echo htmlspecialchars($_SESSION['username']); ?></span>
@@ -62,7 +63,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <?php endif; ?>
 
         <?php if ($gestionFiltro): ?>
-            <div class="alert alert-info">Mostrando cursos de la gestion <?php echo (int) $gestionFiltro; ?> <a href="/centralizador_notas/view/admin/gestion_cursos.php" style="color:#fff; text-decoration:underline;">(ver todas)</a></div>
+            <div class="alert alert-info">Mostrando cursos de la gestion <?php echo (int) $gestionFiltro; ?> <a href="<?= BASE_URL ?>/view/admin/gestion_cursos.php" style="color:#fff; text-decoration:underline;">(ver todas)</a></div>
         <?php endif; ?>
 
         <div class="form-container">
@@ -125,6 +126,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         actualizar();
     })();
     </script>
-    <script src="/centralizador_notas/js/fondo.js"></script>
+    <script src="<?= BASE_URL ?>/js/fondo.js"></script>
 </body>
 </html>

@@ -1,6 +1,7 @@
 <?php
 session_start();
-if (!isset($_SESSION['user_id'])) { header("Location: /centralizador_notas/index.php?error=session"); exit; }
+require_once __DIR__ . '/../config/app.php';
+if (!isset($_SESSION['user_id'])) { redirect("/index.php?error=session"); exit; }
 
 require_once __DIR__ . '/../config/conexion.php';
 require_once __DIR__ . '/../includes/csrf.php';
@@ -9,12 +10,12 @@ require_once __DIR__ . '/../model/MensajesModel.php';
 $model = new MensajesModel();
 $msgId = isset($_GET['id']) ? (int) $_GET['id'] : 0;
 
-if ($msgId <= 0) { header("Location: /centralizador_notas/index.php"); exit; }
+if ($msgId <= 0) { redirect("/index.php"); exit; }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     csrf_validar();
     $model->responder($_POST['mensaje_id'], $_SESSION['referer_id'], $_SESSION['rol'], $_POST['respuesta']);
-    header("Location: /centralizador_notas/view/ver_respuestas.php?id=" . (int) $_POST['mensaje_id'] . "&msg=sent");
+    redirect("/view/ver_respuestas.php?id=" . (int) $_POST['mensaje_id'] . "&msg=sent");
     exit;
 }
 
@@ -26,7 +27,7 @@ $respuestas = $model->obtenerRespuestas($msgId);
 <head>
     <meta charset="UTF-8">
     <title>Responder Mensaje</title>
-    <link rel="stylesheet" href="/centralizador_notas/css/estilos_menu.css">
+    <link rel="stylesheet" href="<?= BASE_URL ?>/css/estilos_menu.css">
 </head>
 <body>
     <div class="container">

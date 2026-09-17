@@ -1,7 +1,8 @@
 <?php
 session_start();
+require_once __DIR__ . '/../../config/app.php';
 if (!isset($_SESSION['user_id']) || $_SESSION['rol'] !== 'docente') {
-    header("Location: /centralizador_notas/index.php?error=session");
+    redirect("/index.php?error=session");
     exit;
 }
 
@@ -25,7 +26,7 @@ $materiaId = isset($_GET['materia_id']) ? (int) $_GET['materia_id'] : 0;
 $docenteId = (int) $_SESSION['referer_id'];
 
 if (!$cursoId || !$materiaId || !$cursosModel->esDocenteAsignado($docenteId, $materiaId, $cursoId)) {
-    header("Location: /centralizador_notas/view/docente/dashboard.php?error=forbidden");
+    redirect("/view/docente/dashboard.php?error=forbidden");
     exit;
 }
 
@@ -66,13 +67,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $_POST['fecha'], strtolower($_POST['estado']),
             $gestion
         );
-        header("Location: /centralizador_notas/view/docente/registro_pedagogico.php?curso_id=$cursoId&materia_id=$materiaId&msg=asistencia");
+        redirect("/view/docente/registro_pedagogico.php?curso_id=$cursoId&materia_id=$materiaId&msg=asistencia");
         exit;
     } elseif ($accion === 'nota') {
         $actividad = $_POST['nombre_actividad'] ?? '';
         if (($_POST['tipo'] ?? '') === 'parcial') {
             if (!in_array($actividad, $opcionesParcial, true) || !$parcialModel->esAbierto($cursoId, $materiaId, $gestion, $actividad)) {
-                header("Location: /centralizador_notas/view/docente/registro_pedagogico.php?curso_id=$cursoId&materia_id=$materiaId&msg=parcial_cerrado");
+                redirect("/view/docente/registro_pedagogico.php?curso_id=$cursoId&materia_id=$materiaId&msg=parcial_cerrado");
                 exit;
             }
         }
@@ -81,7 +82,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $_POST['tipo'], $actividad,
             (float) $_POST['nota'], $gestion
         );
-        header("Location: /centralizador_notas/view/docente/registro_pedagogico.php?curso_id=$cursoId&materia_id=$materiaId&msg=nota");
+        redirect("/view/docente/registro_pedagogico.php?curso_id=$cursoId&materia_id=$materiaId&msg=nota");
         exit;
     }
 }
@@ -161,11 +162,11 @@ function filaVacia($nro = '') {
 <head>
     <meta charset="UTF-8">
     <title>Registro Pedagógico</title>
-    <link rel="stylesheet" href="/centralizador_notas/css/estilos_menu.css">
-    <link rel="stylesheet" href="/centralizador_notas/css/estilos_pedagogico.css">
-    <script defer src="/centralizador_notas/js/script_menu.js"></script>
-    <script defer src="/centralizador_notas/js/script_registro.js"></script>
-    <script>window.APP_CSRF = '<?php echo csrf_token(); ?>'; window.APP_ACTIVO = '<?php echo htmlspecialchars(addslashes($parcialActivo ?? ''), ENT_QUOTES); ?>';</script>
+    <link rel="stylesheet" href="<?= BASE_URL ?>/css/estilos_menu.css">
+    <link rel="stylesheet" href="<?= BASE_URL ?>/css/estilos_pedagogico.css">
+    <script defer src="<?= BASE_URL ?>/js/script_menu.js"></script>
+    <script defer src="<?= BASE_URL ?>/js/script_registro.js"></script>
+    <script>window.BASE_URL = '<?= BASE_URL ?>'; window.APP_CSRF = '<?php echo csrf_token(); ?>'; window.APP_ACTIVO = '<?php echo htmlspecialchars(addslashes($parcialActivo ?? ''), ENT_QUOTES); ?>';</script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/js/all.min.js"></script>
 </head>
 <body>
@@ -175,7 +176,7 @@ function filaVacia($nro = '') {
     <div class="top-header">
         <div class="logo-area">
             <button id="sidebar-toggle" type="button" title="Desplegar o contraer el menu" aria-label="Desplegar o contraer el menu" aria-expanded="false"><i class="fas fa-bars"></i></button>
-            <img src="/centralizador_notas/view/img/escudo.jpg" alt="Logo"><span>Instituto Tecnologico PACCIOLI</span>
+            <img src="<?= BASE_URL ?>/view/img/escudo.jpg" alt="Logo"><span>Instituto Tecnologico PACCIOLI</span>
         </div>
         <div class="user-area">
             <span>Bienvenido, <?php echo htmlspecialchars($nombreDocente); ?></span>
@@ -213,7 +214,7 @@ function filaVacia($nro = '') {
             <button class="btn btn-print" onclick="window.print()"><i class="fas fa-print"></i> Imprimir</button>
             <button class="btn btn-success" type="button" onclick="regConfig.aplicar()"><i class="fas fa-save"></i> Aplicar cambios</button>
             <button class="btn btn-secondary" type="button" onclick="regConfig.descartar()"><i class="fas fa-undo"></i> Descartar</button>
-            <a href="/centralizador_notas/view/docente/dashboard.php" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Volver</a>
+            <a href="<?= BASE_URL ?>/view/docente/dashboard.php" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Volver</a>
         </div>
 
         <?php if ($curso && $materia): ?>
@@ -231,7 +232,7 @@ function filaVacia($nro = '') {
                             <img src="data:image/png;base64,<?php echo base64_encode($regLogo); ?>" alt="Escudo"
                                  class="editable-logo" title="Clic para cambiar la imagen">
                         <?php else: ?>
-                            <img src="/centralizador_notas/view/img/escudo.jpg" alt="Escudo"
+                            <img src="<?= BASE_URL ?>/view/img/escudo.jpg" alt="Escudo"
                                  class="editable-logo" title="Clic para cambiar la imagen">
                         <?php endif; ?>
                     </td>
@@ -441,6 +442,6 @@ function filaVacia($nro = '') {
         <?php endif; ?>
     </div>
 
-    <script src="/centralizador_notas/js/fondo.js"></script>
+    <script src="<?= BASE_URL ?>/js/fondo.js"></script>
 </body>
 </html>

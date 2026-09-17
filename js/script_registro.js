@@ -447,7 +447,7 @@
         if (extra) {
             Object.keys(extra).forEach(function (k) { fd.append(k, extra[k]); });
         }
-        fetch('/centralizador_notas/controller/RegistroAjaxController.php', { method: 'POST', body: fd })
+        fetch((window.BASE_URL || '') + '/controller/RegistroAjaxController.php', { method: 'POST', body: fd })
             .then(function (r) {
                 return r.json().catch(function () { return { ok: false, error: 'Error de servidor (' + r.status + ')' }; });
             })
@@ -833,7 +833,7 @@
     }
 
     function campoPath(campo) {
-        return '/centralizador_notas/controller/RegistroAjaxController.php';
+        return (window.BASE_URL || '') + '/controller/RegistroAjaxController.php';
     }
 
     function aplicar() {
@@ -989,7 +989,7 @@
         fd.append('materia_id', q.materia_id || '0');
         fd.append('accion', 'enviar_parcial');
         fd.append('parcial', activo);
-        fetch('/centralizador_notas/controller/RegistroAjaxController.php', { method: 'POST', body: fd })
+        fetch((window.BASE_URL || '') + '/controller/RegistroAjaxController.php', { method: 'POST', body: fd })
             .then(function (r) {
                 return r.json().catch(function () { return { ok: false, error: 'Error de servidor (' + r.status + ')' }; });
             })

@@ -1,18 +1,19 @@
 <?php
 session_start();
+require_once __DIR__ . '/config/app.php';
 require_once __DIR__ . '/config/conexion.php';
 require_once __DIR__ . '/includes/csrf.php';
 
 if (isset($_SESSION['user_id'])) {
     switch ($_SESSION['rol']) {
         case 'admin':
-            header("Location: /centralizador_notas/view/admin/dashboard.php");
+            redirect("/view/admin/dashboard.php");
             break;
         case 'docente':
-            header("Location: /centralizador_notas/view/docente/dashboard.php");
+            redirect("/view/docente/dashboard.php");
             break;
         case 'estudiante':
-            header("Location: /centralizador_notas/view/estudiante/dashboard.php");
+            redirect("/view/estudiante/dashboard.php");
             break;
     }
     exit;
@@ -24,7 +25,7 @@ if (isset($_SESSION['user_id'])) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Iniciar Sesion - Instituto Tecnologico PACCIOLI</title>
-    <link rel="stylesheet" href="/centralizador_notas/css/estilos_login.css">
+    <link rel="stylesheet" href="<?= BASE_URL ?>/css/estilos_login.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 </head>
 <body>
@@ -33,7 +34,7 @@ if (isset($_SESSION['user_id'])) {
     <div class="login-container">
         <div class="login-card">
             <div class="login-header">
-                <img src="/centralizador_notas/view/img/escudo.jpg" alt="Escudo" class="logo">
+                <img src="<?= BASE_URL ?>/view/img/escudo.jpg" alt="Escudo" class="logo">
                 <h1>Instituto Tecnologico "PACCIOLI"</h1>
                 <h2>Sistema Centralizador de Notas</h2>
             </div>
@@ -51,7 +52,7 @@ if (isset($_SESSION['user_id'])) {
                 </div>
             <?php endif; ?>
 
-            <form action="/centralizador_notas/controller/LoginController.php" method="POST" class="login-form">
+            <form action="<?= BASE_URL ?>/controller/LoginController.php" method="POST" class="login-form">
                 <?php echo csrf_campo(); ?>
                 <div class="input-group">
                     <i class="fas fa-user"></i>
@@ -72,6 +73,6 @@ if (isset($_SESSION['user_id'])) {
         </div>
     </div>
 
-    <script src="/centralizador_notas/js/fondo.js"></script>
+    <script src="<?= BASE_URL ?>/js/fondo.js"></script>
 </body>
 </html>

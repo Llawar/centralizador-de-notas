@@ -1,7 +1,8 @@
 <?php
 session_start();
+require_once __DIR__ . '/../../config/app.php';
 if (!isset($_SESSION['user_id']) || $_SESSION['rol'] !== 'admin') {
-    header("Location: /centralizador_notas/index.php?error=session");
+    redirect("/index.php?error=session");
     exit;
 }
 require_once __DIR__ . '/../../config/conexion.php';
@@ -23,11 +24,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($cursoId && $parcial !== '') {
         if ($accion === 'abrir') {
             $parcialModel->abrir($cursoId, $gestion, $parcial, $adminId);
-            header("Location: /centralizador_notas/view/admin/gestion_periodos.php?curso_id=$cursoId&msg=abierto");
+            redirect("/view/admin/gestion_periodos.php?curso_id=$cursoId&msg=abierto");
             exit;
         } elseif ($accion === 'cerrar') {
             $parcialModel->cerrar($cursoId, $gestion, $parcial);
-            header("Location: /centralizador_notas/view/admin/gestion_periodos.php?curso_id=$cursoId&msg=cerrado");
+            redirect("/view/admin/gestion_periodos.php?curso_id=$cursoId&msg=cerrado");
             exit;
         }
     }
@@ -47,8 +48,8 @@ foreach ($cursos as $c) {
 <head>
     <meta charset="UTF-8">
     <title>Gestionar Parciales</title>
-    <link rel="stylesheet" href="/centralizador_notas/css/estilos_menu.css">
-    <script defer src="/centralizador_notas/js/script_menu.js"></script>
+    <link rel="stylesheet" href="<?= BASE_URL ?>/css/estilos_menu.css">
+    <script defer src="<?= BASE_URL ?>/js/script_menu.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/js/all.min.js"></script>
 </head>
 <body>
@@ -58,7 +59,7 @@ foreach ($cursos as $c) {
     <div class="top-header">
         <div class="logo-area">
             <button id="sidebar-toggle" type="button" title="Desplegar o contraer el menu" aria-label="Desplegar o contraer el menu" aria-expanded="false"><i class="fas fa-bars"></i></button>
-            <img src="/centralizador_notas/view/img/escudo.jpg" alt="Logo"><span>Instituto Tecnologico PACCIOLI</span>
+            <img src="<?= BASE_URL ?>/view/img/escudo.jpg" alt="Logo"><span>Instituto Tecnologico PACCIOLI</span>
         </div>
         <div class="user-area">
             <span>Bienvenido, <?php echo htmlspecialchars($_SESSION['username']); ?></span>
@@ -134,6 +135,6 @@ foreach ($cursos as $c) {
             </table>
         </div>
     </div>
-    <script src="/centralizador_notas/js/fondo.js"></script>
+    <script src="<?= BASE_URL ?>/js/fondo.js"></script>
 </body>
 </html>
