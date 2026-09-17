@@ -66,20 +66,3 @@ function toggleSubmenu(element) {
         }
     }
 }
-
-// Modo oscuro / claro
-const modoBtn = document.getElementById('modo-btn');
-if (modoBtn) {
-    // Cargar preferencia guardada
-    if (localStorage.getItem('darkMode') === 'true') {
-        document.body.classList.add('dark-mode');
-        modoBtn.textContent = '☀️';
-    }
-
-    modoBtn.addEventListener('click', () => {
-        document.body.classList.toggle('dark-mode');
-        const isDark = document.body.classList.contains('dark-mode');
-        modoBtn.textContent = isDark ? '☀️' : '🌙';
-        localStorage.setItem('darkMode', isDark);
-    });
-}

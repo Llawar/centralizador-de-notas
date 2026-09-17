@@ -28,18 +28,19 @@
     align-items: center;
     gap: 8px;
     padding: 6px 10px;
-    background: #ffffff;
-    border: 1px solid #e0e0e0;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.15);
     border-radius: 8px;
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+    backdrop-filter: blur(10px);
 }
 
 .reg-col-ctrl select {
     padding: 8px 10px;
     font-size: 0.82rem;
-    border: 1px solid #ccc;
+    border: 1px solid rgba(255, 255, 255, 0.2);
     border-radius: 6px;
-    background: #fff;
+    background: rgba(255, 255, 255, 0.08);
+    color: white;
     cursor: pointer;
 }
 
@@ -412,22 +413,10 @@
 }
 
 /* ============================================
-   MODO OSCURO: la hoja siempre se ve como papel
-   (fondo blanco y texto negro)
+   HOJA SIEMPRE EN PAPEL (blanco y negro)
    ============================================ */
-body.dark-mode .reg-sheet {
-    background: #fff;
-}
+/* Las hojas se imprimen en blanco/negro independientemente del tema */
 
-body.dark-mode .reg-sheet,
-body.dark-mode .reg-sheet th,
-body.dark-mode .reg-sheet td {
-    color: #000;
-}
-
-body.dark-mode .reg-sheet .asist-presente    { color: #0a5c18; }
-body.dark-mode .reg-sheet .asist-ausente     { color: #8a1418; }
-body.dark-mode .reg-sheet .asist-justificado { color: #7a5300; }
 
 /* ============================================
    IMPRESIÓN (A4 horizontal)

@@ -36,7 +36,6 @@ foreach ($notas as $n) {
         </div>
         <div class="user-area">
             <span>Bienvenido, <?php echo htmlspecialchars($_SESSION['est_name']); ?></span>
-            <button id="modo-btn" title="Cambiar modo">🌙</button>
         </div>
     </div>
     <div class="container">

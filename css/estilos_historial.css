@@ -13,7 +13,7 @@
 }
 
 .historial-container h1 {
-    color: #222;
+    color: #fff;
     margin-bottom: 15px;
 }
 
@@ -41,7 +41,7 @@
 
 .filtro-form .form-group label {
     display: block;
-    color: #007acc;
+    color: rgba(255, 255, 255, 0.85);
     font-size: 0.8rem;
     margin-bottom: 5px;
 }
@@ -297,22 +297,11 @@
 }
 
 /* ============================================
-   MODO OSCURO: las hojas siempre se ven como papel
-   (fondo blanco y texto negro)
+   HOJAS SIEMPRE EN PAPEL (blanco y negro)
    ============================================ */
-body.dark-mode .sheet {
-    background: #fff;
-}
+/* Las hojas se imprimen en blanco/negro independientemente del tema */
+/* Mantener colores de texto negro dentro de .sheet para impresión */
 
-body.dark-mode .sheet,
-body.dark-mode .sheet th,
-body.dark-mode .sheet td {
-    color: #000;
-}
-
-body.dark-mode .historial-container h1 {
-    color: #fff;
-}
 
 /* ============================================
    IMPRESIÓN (A4 horizontal)

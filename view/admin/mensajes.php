@@ -37,7 +37,6 @@ $model->marcarTodosLeidos($_SESSION['referer_id'], 'admin');
         </div>
         <div class="user-area">
             <span>Bienvenido, <?php echo htmlspecialchars($_SESSION['username']); ?></span>
-            <button id="modo-btn" title="Cambiar modo">🌙</button>
         </div>
     </div>
     <div class="container">

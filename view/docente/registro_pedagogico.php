@@ -180,7 +180,6 @@ function filaVacia($nro = '') {
         </div>
         <div class="user-area">
             <span>Bienvenido, <?php echo htmlspecialchars($nombreDocente); ?></span>
-            <button id="modo-btn" title="Cambiar modo">🌙</button>
         </div>
     </div>
 
