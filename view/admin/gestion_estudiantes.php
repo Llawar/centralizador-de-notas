@@ -1,13 +1,10 @@
 <?php
-session_start();
 require_once __DIR__ . '/../../config/app.php';
-if (!isset($_SESSION['user_id']) || $_SESSION['rol'] !== 'admin') {
-    redirect("/index.php?error=session");
-    exit;
-}
-require_once __DIR__ . '/../../config/conexion.php';
+require_once __DIR__ . '/../../includes/auth.php';
+auth_guard('admin');
 require_once __DIR__ . '/../../includes/csrf.php';
 require_once __DIR__ . '/../../model/EstudiantesModel.php';
+require_once __DIR__ . '/../../includes/flash.php';
 
 $model = new EstudiantesModel();
 $estudiantes = $model->getAll();
@@ -18,55 +15,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($accion === 'crear') {
         $model->crear($_POST['ci'], $_POST['nombre'], $_POST['matricula'], $_POST['anio_ingreso'], $_POST['email'], $_POST['password']);
         redirect("/view/admin/gestion_estudiantes.php?msg=created");
-        exit;
     } elseif ($accion === 'editar') {
         $model->actualizar($_POST['id'], $_POST['ci'], $_POST['nombre'], $_POST['matricula'], $_POST['anio_ingreso'], $_POST['email'], $_POST['estado']);
         redirect("/view/admin/gestion_estudiantes.php?msg=updated");
-        exit;
     } elseif ($accion === 'eliminar') {
         $model->eliminar($_POST['id']);
         redirect("/view/admin/gestion_estudiantes.php?msg=deleted");
-        exit;
     }
 }
+$titulo = 'Gestionar Estudiantes';
+require_once __DIR__ . '/../../includes/layout_header.php';
 ?>
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <title>Gestionar Estudiantes</title>
-    <link rel="stylesheet" href="<?= BASE_URL ?>/css/estilos_menu.css">
-    <script defer src="<?= BASE_URL ?>/js/script_menu.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/js/all.min.js"></script>
-</head>
-<body>
-    <canvas id="canvas"></canvas>
-    <?php include __DIR__ . '/../../includes/menu_admin.php'; ?>
-
-    <div class="top-header">
-        <div class="logo-area">
-            <button id="sidebar-toggle" type="button" title="Desplegar o contraer el menu" aria-label="Desplegar o contraer el menu" aria-expanded="false"><i class="fas fa-bars"></i></button>
-            <img src="<?= BASE_URL ?>/view/img/escudo.jpg" alt="Logo"><span>Instituto Tecnologico PACCIOLI</span>
-        </div>
-        <div class="user-area">
-            <span>Bienvenido, <?php echo htmlspecialchars($_SESSION['username']); ?></span>
-        </div>
-    </div>
-
-    <div class="container">
         <h1>Gestionar Estudiantes</h1>
 
-        <?php if (isset($_GET['msg'])): ?>
-            <div class="alert alert-success">
-                <?php
-                switch ($_GET['msg']) {
-                    case 'created': echo 'Estudiante creado exitosamente.'; break;
-                    case 'updated': echo 'Estudiante actualizado exitosamente.'; break;
-                    case 'deleted': echo 'Estudiante eliminado exitosamente.'; break;
-                }
-                ?>
-            </div>
-        <?php endif; ?>
+        <?= flash_html(['created'=>'Estudiante creado exitosamente.','updated'=>'Estudiante actualizado exitosamente.','deleted'=>'Estudiante eliminado exitosamente.']) ?>
 
         <div class="form-container">
             <h3>Agregar Nuevo Estudiante</h3>
@@ -111,7 +73,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </tbody>
             </table>
         </div>
-    </div>
 
     <div id="modalEditar" class="modal-overlay">
         <div class="modal">
@@ -149,6 +110,4 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         document.getElementById('modalEditar').classList.add('active');
     }
     </script>
-    <script src="<?= BASE_URL ?>/js/fondo.js"></script>
-</body>
-</html>
+<?php require_once __DIR__ . '/../../includes/layout_footer.php'; ?>

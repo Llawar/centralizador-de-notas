@@ -68,6 +68,18 @@ class AsistenciaModel {
         return $result;
     }
 
+    public function getFechasDistintas(int $cursoId, int $materiaId, int $gestion): array
+    {
+        $stmt = $this->conn->prepare("SELECT DISTINCT fecha FROM asistencia WHERE curso_id = ? AND materia_id = ? AND gestion = ? ORDER BY fecha");
+        $stmt->bind_param("iii", $cursoId, $materiaId, $gestion);
+        $stmt->execute();
+        $res = $stmt->get_result();
+        $fechas = [];
+        while ($r = $res->fetch_assoc()) { $fechas[] = $r['fecha']; }
+        $stmt->close();
+        return $fechas;
+    }
+
     public function getAsistenciaPorCurso($cursoId, $materiaId, $gestion = null) {
         if ($gestion !== null && $gestion !== '') {
             $sql = "SELECT a.*, e.nombre_completo FROM asistencia a

@@ -24,21 +24,19 @@ foreach ($notas as $n) {
     <meta charset="UTF-8"><title>Mis Notas</title>
     <link rel="stylesheet" href="<?= BASE_URL ?>/css/estilos_menu.css">
     <script defer src="<?= BASE_URL ?>/js/script_menu.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/js/all.min.js"></script>
-</head>
+    </head>
 <body>
-    <canvas id="canvas"></canvas>
-    <?php include __DIR__ . '/../../includes/menu_estudiante.php'; ?>
-    <div class="top-header">
-        <div class="logo-area">
-            <button id="sidebar-toggle" type="button" title="Desplegar o contraer el menu" aria-label="Desplegar o contraer el menu" aria-expanded="false"><i class="fas fa-bars"></i></button>
-            <img src="<?= BASE_URL ?>/view/img/escudo.jpg" alt="Logo"><span>Instituto Tecnologico PACCIOLI</span>
-        </div>
-        <div class="user-area">
-            <span>Bienvenido, <?php echo htmlspecialchars($_SESSION['est_name']); ?></span>
-        </div>
-    </div>
-    <div class="container">
+    <canvas id="canvas" aria-hidden="true"></canvas>
+<div class="app">
+<header class="topbar">
+  <button class="icon-btn" id="btnSide" aria-label="Menu"><svg class="ic"><use href="#i-menu"/></svg></button>
+  <a class="brand" href="<?= BASE_URL ?>/view/estudiante/dashboard.php"><img src="<?= BASE_URL ?>/view/img/escudo.jpg" class="brand-logo" alt="Escudo"><span class="brand-name">Instituto Tecnologico <strong>PACCIOLI</strong></span></a>
+  <div class="topbar-center"><div class="search"><input id="q" type="search" placeholder="Buscar…"><kbd>/</kbd></div></div>
+  <div class="topbar-right"><span class="user-chip"><span class="avatar">E</span><span class="user-tx"><b><?php echo htmlspecialchars($_SESSION['est_name']); ?></b><span>Estudiante</span></span></span></div>
+</header>
+<div class="shell">
+<?php include __DIR__ . '/../../includes/menu_estudiante.php'; ?>
+<main class="main">
         <h1>Mis Notas</h1>
 
         <?php if (empty($porMateria)): ?>
@@ -64,6 +62,9 @@ foreach ($notas as $n) {
             <?php endforeach; ?>
         <?php endif; ?>
     </div>
-    <script src="<?= BASE_URL ?>/js/fondo.js"></script>
+    </main>
+</div>
+</div>
+<script src="<?= BASE_URL ?>/js/fondo.js"></script>
 </body>
 </html>

@@ -9,6 +9,7 @@ require_once __DIR__ . '/../model/EstudiantesModel.php';
 require_once __DIR__ . '/../model/ParcialPeriodoModel.php';
 require_once __DIR__ . '/../model/NotasModel.php';
 require_once __DIR__ . '/../model/AsistenciaModel.php';
+require_once __DIR__ . '/../model/ServicioNotas.php';
 
 header('Content-Type: application/json; charset=utf-8');
 
@@ -22,48 +23,8 @@ function jsonSalida($ok, $error = '', $extra = []) {
 }
 
 function recalcFila($estudianteId, $cursoId, $materiaId, $gestion, $carreraTipo) {
-    $notasModel = new NotasModel();
-    $parcialModel = new ParcialPeriodoModel();
-    $allNotas = $notasModel->getNotasEstudiante($estudianteId, $cursoId, $materiaId);
-
-    $conocerSum = 0; $hacerSum = 0; $serSum = 0;
-    $tieneConocer1 = false;
-    $tieneHacer1 = false;
-    foreach ($allNotas as $n) {
-        if (($n['tipo'] ?? '') === 'conocer') {
-            $conocerSum += (float) $n['nota'];
-            if (($n['nombre_actividad'] ?? '') === 'Conocer 1') $tieneConocer1 = true;
-        } elseif (($n['tipo'] ?? '') === 'hacer') {
-            $hacerSum += (float) $n['nota'];
-            if (($n['nombre_actividad'] ?? '') === 'Hacer 1') $tieneHacer1 = true;
-        } elseif (($n['tipo'] ?? '') === 'ser')    $serSum    += (float) $n['nota'];
-    }
-
-    $activo = $parcialModel->parcialActivo($cursoId, $materiaId, $gestion, $carreraTipo);
-    $label = $activo !== null ? $activo : 'Parcial';
-    $parcialDirecto = null;
-    foreach ($allNotas as $n) {
-        if (($n['tipo'] ?? '') === 'parcial' && ($n['nombre_actividad'] ?? '') === $label) {
-            $parcialDirecto = (float) $n['nota'];
-            break;
-        }
-    }
-
-    if ($parcialDirecto !== null) {
-        $teoria  = round($parcialDirecto * 0.30, 1);
-        $practica = round($parcialDirecto * 0.70, 1);
-        $parcial = $parcialDirecto;
-    } else {
-        $teoria   = $tieneConocer1 ? round($conocerSum, 0) : null;
-        $practica = $tieneHacer1   ? round($hacerSum + $serSum, 0) : null;
-        $parcial  = ($teoria !== null && $practica !== null) ? round($teoria + $practica, 0) : null;
-    }
-
-    return [
-        'teoria'  => $teoria !== null ? (float) $teoria : null,
-        'practica' => $practica !== null ? (float) $practica : null,
-        'parcial' => $parcial !== null ? (float) $parcial : null,
-    ];
+    // Wrapper legacy: delega a ServicioNotas (única fuente de verdad)
+    return ServicioNotas::recalcFila((int)$estudianteId, (int)$cursoId, (int)$materiaId, (int)$gestion, (string)$carreraTipo);
 }
 
 if (($_SESSION['rol'] ?? '') !== 'docente') {

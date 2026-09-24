@@ -36,38 +36,12 @@ class DocentesModel {
         $stmt->close();
 
         if ($result) {
-            $username = $this->generarUsername($nombre);
-            $this->crearUsuario($username, $password, $id);
+            require_once __DIR__ . '/UsuariosModel.php';
+            $uModel = new UsuariosModel();
+            $username = $uModel->generarUsername($nombre);
+            $uModel->crearUsuarioPara($username, $password, 'docente', $id);
         }
         return $result;
-    }
-
-    private function generarUsername($nombre) {
-        $partes = preg_split('/\s+/', trim($nombre));
-        $partes = array_values(array_filter($partes, function ($p) {
-            return !preg_match('/^(ing|lic|dra|dr|mgr|mba)\.?$/i', $p);
-        }));
-        $base = strtolower($partes[0] ?? 'usuario');
-        if (isset($partes[1])) {
-            $base .= '.' . strtolower($partes[1]);
-        }
-        $username = $base;
-        $i = 1;
-        while ($this->existeUsername($username)) {
-            $i++;
-            $username = $base . $i;
-        }
-        return $username;
-    }
-
-    private function existeUsername($username) {
-        $stmt = $this->conn->prepare("SELECT id FROM usuarios WHERE username = ?");
-        $stmt->bind_param("s", $username);
-        $stmt->execute();
-        $stmt->store_result();
-        $existe = $stmt->num_rows > 0;
-        $stmt->close();
-        return $existe;
     }
 
     public function actualizar($id, $ci, $nombre, $email, $telefono, $estado) {
@@ -114,11 +88,4 @@ class DocentesModel {
         return $materias;
     }
 
-    private function crearUsuario($username, $password, $docenteId) {
-        $hash = password_hash($password, PASSWORD_DEFAULT);
-        $stmt = $this->conn->prepare("INSERT INTO usuarios (username, password, rol, referer_id) VALUES (?, ?, 'docente', ?)");
-        $stmt->bind_param("ssi", $username, $hash, $docenteId);
-        $stmt->execute();
-        $stmt->close();
-    }
 }

@@ -21,22 +21,19 @@ $estudiantes = ($cursoId && $anio) ? $estudiantesModel->getByCurso($cursoId) : [
     <meta charset="UTF-8"><title>Estudiantes por Curso</title>
     <link rel="stylesheet" href="<?= BASE_URL ?>/css/estilos_menu.css">
     <script defer src="<?= BASE_URL ?>/js/script_menu.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/js/all.min.js"></script>
-</head>
+    </head>
 <body>
-    <canvas id="canvas"></canvas>
-    <?php include __DIR__ . '/../../includes/menu_admin.php'; ?>
-
-    <div class="top-header">
-        <div class="logo-area">
-            <button id="sidebar-toggle" type="button" title="Desplegar o contraer el menu" aria-label="Desplegar o contraer el menu" aria-expanded="false"><i class="fas fa-bars"></i></button>
-            <img src="<?= BASE_URL ?>/view/img/escudo.jpg" alt="Logo"><span>Instituto Tecnologico PACCIOLI</span>
-        </div>
-        <div class="user-area">
-            <span>Bienvenido, <?php echo htmlspecialchars($_SESSION['username']); ?></span>
-        </div>
-    </div>
-    <div class="container">
+    <canvas id="canvas" aria-hidden="true"></canvas>
+<div class="app">
+<header class="topbar">
+  <button class="icon-btn" id="btnSide" aria-label="Menu"><svg class="ic"><use href="#i-menu"/></svg></button>
+  <a class="brand" href="<?= BASE_URL ?>/view/admin/dashboard.php"><img src="<?= BASE_URL ?>/view/img/escudo.jpg" class="brand-logo" alt="Escudo"><span class="brand-name">Instituto Tecnologico <strong>PACCIOLI</strong></span></a>
+  <div class="topbar-center"><div class="search"><input id="q" type="search" placeholder="Buscar…"><kbd>/</kbd></div></div>
+  <div class="topbar-right"><span class="user-chip"><span class="avatar">A</span><span class="user-tx"><b><?php echo htmlspecialchars($_SESSION['username']); ?></b><span>Administrador</span></span></span></div>
+</header>
+<div class="shell">
+<?php include __DIR__ . '/../../includes/menu_admin.php'; ?>
+<main class="main">
         <h1>Estudiantes - <?php echo htmlspecialchars($curso['nombre'] ?? ''); ?> (<?php echo htmlspecialchars($curso['carrera_nombre'] ?? ''); ?>)</h1>
         <h2>Gestion <?php echo $anio ? (int) $anio : ''; ?></h2>
 
@@ -60,6 +57,9 @@ $estudiantes = ($cursoId && $anio) ? $estudiantesModel->getByCurso($cursoId) : [
             </table>
         </div>
     </div>
-    <script src="<?= BASE_URL ?>/js/fondo.js"></script>
+    </main>
+</div>
+</div>
+<script src="<?= BASE_URL ?>/js/fondo.js"></script>
 </body>
 </html>

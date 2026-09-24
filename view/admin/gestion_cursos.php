@@ -1,14 +1,11 @@
 <?php
-session_start();
 require_once __DIR__ . '/../../config/app.php';
-if (!isset($_SESSION['user_id']) || $_SESSION['rol'] !== 'admin') {
-    redirect("/index.php?error=session");
-    exit;
-}
-require_once __DIR__ . '/../../config/conexion.php';
+require_once __DIR__ . '/../../includes/auth.php';
+auth_guard('admin');
 require_once __DIR__ . '/../../includes/csrf.php';
 require_once __DIR__ . '/../../model/CursosModel.php';
 require_once __DIR__ . '/../../model/CarrerasModel.php';
+require_once __DIR__ . '/../../includes/flash.php';
 
 $cursosModel = new CursosModel();
 $carrerasModel = new CarrerasModel();
@@ -27,40 +24,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $semestre = ($carreraSel['tipo'] ?? 'anual') === 'semestral' ? (int) ($_POST['semestre'] ?? 1) : 1;
         $cursosModel->crear($_POST['nombre'], $_POST['anio'], $_POST['paralelo'], $_POST['carrera_id'], $_POST['gestion'], $semestre);
         redirect("/view/admin/gestion_cursos.php?msg=created");
-        exit;
     }
 }
+$titulo = 'Gestionar Cursos';
+require_once __DIR__ . '/../../includes/layout_header.php';
 ?>
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <title>Gestionar Cursos</title>
-    <link rel="stylesheet" href="<?= BASE_URL ?>/css/estilos_menu.css">
-    <script defer src="<?= BASE_URL ?>/js/script_menu.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/js/all.min.js"></script>
-</head>
-<body>
-    <canvas id="canvas"></canvas>
-    <?php include __DIR__ . '/../../includes/menu_admin.php'; ?>
-
-    <div class="top-header">
-        <div class="logo-area">
-            <button id="sidebar-toggle" type="button" title="Desplegar o contraer el menu" aria-label="Desplegar o contraer el menu" aria-expanded="false"><i class="fas fa-bars"></i></button>
-            <img src="<?= BASE_URL ?>/view/img/escudo.jpg" alt="Logo"><span>Instituto Tecnologico PACCIOLI</span>
-        </div>
-        <div class="user-area">
-            <span>Bienvenido, <?php echo htmlspecialchars($_SESSION['username']); ?></span>
-        </div>
-    </div>
-
-    <div class="container">
         <h1>Gestionar Cursos</h1>
 
-        <?php if (isset($_GET['msg']) && $_GET['msg'] === 'created'): ?>
-            <div class="alert alert-success">Curso creado exitosamente.</div>
-        <?php endif; ?>
-
+        <?= flash_html(['created'=>'Curso creado exitosamente.']) ?>
         <?php if ($gestionFiltro): ?>
             <div class="alert alert-info">Mostrando cursos de la gestion <?php echo (int) $gestionFiltro; ?> <a href="<?= BASE_URL ?>/view/admin/gestion_cursos.php" style="color:#fff; text-decoration:underline;">(ver todas)</a></div>
         <?php endif; ?>
@@ -106,7 +77,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </tbody>
             </table>
         </div>
-    </div>
     <script>
     (function () {
         var sel = document.getElementById('frmCarrera');
@@ -125,6 +95,4 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         actualizar();
     })();
     </script>
-    <script src="<?= BASE_URL ?>/js/fondo.js"></script>
-</body>
-</html>
+<?php require_once __DIR__ . '/../../includes/layout_footer.php'; ?>

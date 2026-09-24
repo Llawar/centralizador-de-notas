@@ -1,81 +1,24 @@
-<?php
-require_once __DIR__ . '/../config/app.php';
-?>
-<div class="sidebar">
-    <div class="menu-title">Panel Administrativo</div>
-
-    <a href="<?= BASE_URL ?>/view/admin/dashboard.php" class="menu-item">
-        <div class="menu-label"><i class="fas fa-tachometer-alt"></i><span>Dashboard</span></div>
-    </a>
-
-    <div class="menu-item" onclick="toggleSubmenu(this)">
-        <div class="menu-label"><i class="fas fa-calendar-alt"></i><span>Anios de Clase</span></div>
-        <i class="fas fa-chevron-right arrow"></i>
-    </div>
-    <div class="submenu">
-        <a href="<?= BASE_URL ?>/view/admin/anios_clase.php">Gestionar Anios</a>
-    </div>
-
-    <div class="menu-item" onclick="toggleSubmenu(this)">
-        <div class="menu-label"><i class="fas fa-graduation-cap"></i><span>Carreras</span></div>
-        <i class="fas fa-chevron-right arrow"></i>
-    </div>
-    <div class="submenu">
-        <a href="<?= BASE_URL ?>/view/admin/gestion_carreras.php">Gestionar Carreras</a>
-    </div>
-
-    <div class="menu-item" onclick="toggleSubmenu(this)">
-        <div class="menu-label"><i class="fas fa-book"></i><span>Materias</span></div>
-        <i class="fas fa-chevron-right arrow"></i>
-    </div>
-    <div class="submenu">
-        <a href="<?= BASE_URL ?>/view/admin/gestion_materias.php">Gestionar Materias</a>
-    </div>
-
-    <div class="menu-item" onclick="toggleSubmenu(this)">
-        <div class="menu-label"><i class="fas fa-users"></i><span>Docentes</span></div>
-        <i class="fas fa-chevron-right arrow"></i>
-    </div>
-    <div class="submenu">
-        <a href="<?= BASE_URL ?>/view/admin/gestion_docentes.php">Gestionar Docentes</a>
-    </div>
-
-    <div class="menu-item" onclick="toggleSubmenu(this)">
-        <div class="menu-label"><i class="fas fa-user-graduate"></i><span>Estudiantes</span></div>
-        <i class="fas fa-chevron-right arrow"></i>
-    </div>
-    <div class="submenu">
-        <a href="<?= BASE_URL ?>/view/admin/gestion_estudiantes.php">Gestionar Estudiantes</a>
-        <a href="<?= BASE_URL ?>/view/admin/inscripciones.php">Inscribir en Cursos</a>
-    </div>
-
-    <div class="menu-item" onclick="toggleSubmenu(this)">
-        <div class="menu-label"><i class="fas fa-chalkboard"></i><span>Cursos</span></div>
-        <i class="fas fa-chevron-right arrow"></i>
-    </div>
-    <div class="submenu">
-        <a href="<?= BASE_URL ?>/view/admin/gestion_cursos.php">Gestionar Cursos</a>
-        <a href="<?= BASE_URL ?>/view/admin/asignaciones.php">Asignar Docentes</a>
-        <a href="<?= BASE_URL ?>/view/admin/gestion_periodos.php">Gestionar Parciales</a>
-    </div>
-
-    <div class="menu-item" onclick="toggleSubmenu(this)">
-        <div class="menu-label"><i class="fas fa-file-alt"></i><span>Historial Académico</span></div>
-        <i class="fas fa-chevron-right arrow"></i>
-    </div>
-    <div class="submenu">
-        <a href="<?= BASE_URL ?>/view/admin/historial_academico.php">Consultar Notas</a>
-    </div>
-
-    <div class="menu-item" onclick="toggleSubmenu(this)">
-        <div class="menu-label"><i class="fas fa-comments"></i><span>Mensajes</span></div>
-        <i class="fas fa-chevron-right arrow"></i>
-    </div>
-    <div class="submenu">
-        <a href="<?= BASE_URL ?>/view/admin/mensajes.php">Bandeja de Entrada</a>
-    </div>
-
-    <a href="<?= BASE_URL ?>/logout.php" class="menu-item">
-        <div class="menu-label"><i class="fas fa-sign-out-alt"></i><span>Cerrar Sesion</span></div>
-    </a>
-</div>
+<?php require_once __DIR__ . '/../config/app.php'; ?>
+<?php include __DIR__ . '/icons.php'; ?>
+<aside class="sidebar" id="sidebar" aria-label="Navegación principal">
+<nav>
+  <p class="group-title">Principal</p>
+  <a class="nav-item" href="<?= BASE_URL ?>/view/admin/dashboard.php"><svg class="ic"><use href="#i-grid"/></svg><span class="label">Dashboard</span></a>
+  <p class="group-title">Académico</p>
+  <a class="nav-item" href="<?= BASE_URL ?>/view/admin/anios_clase.php"><svg class="ic"><use href="#i-cal"/></svg><span class="label">Años y Períodos</span></a>
+  <a class="nav-item" href="<?= BASE_URL ?>/view/admin/gestion_carreras.php"><svg class="ic"><use href="#i-layers"/></svg><span class="label">Carreras</span></a>
+  <a class="nav-item" href="<?= BASE_URL ?>/view/admin/gestion_materias.php"><svg class="ic"><use href="#i-book"/></svg><span class="label">Materias</span></a>
+  <a class="nav-item" href="<?= BASE_URL ?>/view/admin/gestion_cursos.php"><svg class="ic"><use href="#i-monitor"/></svg><span class="label">Cursos</span></a>
+  <a class="nav-item" href="<?= BASE_URL ?>/view/admin/gestion_periodos.php"><svg class="ic"><use href="#i-cal"/></svg><span class="label">Parciales</span></a>
+  <p class="group-title">Personas</p>
+  <a class="nav-item" href="<?= BASE_URL ?>/view/admin/gestion_docentes.php"><svg class="ic"><use href="#i-users"/></svg><span class="label">Docentes</span></a>
+  <a class="nav-item" href="<?= BASE_URL ?>/view/admin/gestion_estudiantes.php"><svg class="ic"><use href="#i-cap"/></svg><span class="label">Estudiantes</span></a>
+  <a class="nav-item" href="<?= BASE_URL ?>/view/admin/inscripciones.php"><svg class="ic"><use href="#i-userplus"/></svg><span class="label">Inscripciones</span></a>
+  <a class="nav-item" href="<?= BASE_URL ?>/view/admin/asignaciones.php"><svg class="ic"><use href="#i-users"/></svg><span class="label">Asignaciones</span></a>
+  <p class="group-title">Calificaciones</p>
+  <a class="nav-item" href="<?= BASE_URL ?>/view/admin/historial_academico.php"><svg class="ic"><use href="#i-file"/></svg><span class="label">Historial Académico</span></a>
+  <p class="group-title">Sistema</p>
+  <a class="nav-item danger" href="<?= BASE_URL ?>/logout.php"><svg class="ic"><use href="#i-out"/></svg><span class="label">Cerrar Sesión</span></a>
+</nav>
+</aside>
+<div class="backdrop" id="backdrop"></div>

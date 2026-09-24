@@ -1,3 +1,4 @@
+/* Módulo impresión A4 — NO usa design system global */
 /* ============================================
    ESTILOS - REGISTRO PEDAGOGICO
    Hoja calcada de REGISTRO.xlsx
@@ -5,7 +6,7 @@
 
 .reg-container {
     margin-left: 0;
-    margin-top: 80px;
+    margin-top: 0;
     padding: 20px;
     position: relative;
     z-index: 1;
@@ -52,6 +53,28 @@
 .btn-print {
     background: linear-gradient(135deg, #667eea, #764ba2);
     color: #fff;
+}
+
+/* Badge de estado del parcial */
+.badge-parcial-open,
+.badge-parcial-none {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 700;
+    color: #fff;
+    vertical-align: middle;
+    margin-left: 4px;
+}
+
+.badge-parcial-open { background: var(--green, #34D399); }
+.badge-parcial-none { background: var(--text-3, #707A96); }
+
+/* Alerta de flash centrada */
+.alert-reg {
+    max-width: 600px;
+    margin: 0 auto 15px;
 }
 
 /* ---- Hoja en blanco (formulario impreso) ---- */
@@ -217,15 +240,14 @@
 
 .reg-tabla .reg-nombre {
     text-align: left;
-    font-weight: 700;
+    font-weight: 600;
+    min-width: 170px;
     width: 190px;
 }
 
 .reg-tabla td.reg-nombre {
     text-align: left;
     padding-left: 6px;
-    font-weight: 600;
-    min-width: 170px;
 }
 
 .reg-nro { width: 26px; }
@@ -432,8 +454,10 @@
     }
 
     .menu-lateral,
+    .sidebar,
     canvas,
     .top-header,
+    .topbar,
     .reg-btns,
     .modal-overlay,
     .alert {

@@ -9,3 +9,10 @@ config/conexion.php
 Thumbs.db
 .DS_Store
 desktop.ini
+
+AGENTS.md
+.atl/*
+scripts/*
+.engram-lite/*
+prototipes/*
+.opencode/*

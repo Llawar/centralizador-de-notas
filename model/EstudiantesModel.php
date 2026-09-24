@@ -77,8 +77,10 @@ class EstudiantesModel {
         $stmt->close();
 
         if ($result) {
-            $username = $this->generarUsername($nombre);
-            $this->crearUsuario($username, $password, $id);
+            require_once __DIR__ . '/UsuariosModel.php';
+            $uModel = new UsuariosModel();
+            $username = $uModel->generarUsername($nombre);
+            $uModel->crearUsuarioPara($username, $password, 'estudiante', $id);
         }
         return $result;
     }
@@ -93,30 +95,7 @@ class EstudiantesModel {
         return $existe;
     }
 
-    private function generarUsername($nombre) {
-        $partes = preg_split('/\s+/', trim($nombre));
-        $base = strtolower($partes[0] ?? 'estudiante');
-        if (isset($partes[1])) {
-            $base .= '.' . strtolower($partes[1]);
-        }
-        $username = $base;
-        $i = 1;
-        while ($this->existeUsername($username)) {
-            $i++;
-            $username = $base . $i;
-        }
-        return $username;
-    }
 
-    private function existeUsername($username) {
-        $stmt = $this->conn->prepare("SELECT id FROM usuarios WHERE username = ?");
-        $stmt->bind_param("s", $username);
-        $stmt->execute();
-        $stmt->store_result();
-        $existe = $stmt->num_rows > 0;
-        $stmt->close();
-        return $existe;
-    }
 
     public function actualizar($id, $ci, $nombre, $matricula, $anioIngreso, $email, $estado) {
         $stmt = $this->conn->prepare("UPDATE estudiantes SET ci = ?, nombre_completo = ?, matricula = ?, anio_ingreso = ?, email = ?, estado = ? WHERE id = ?");
@@ -200,11 +179,4 @@ class EstudiantesModel {
         return $result;
     }
 
-    private function crearUsuario($username, $password, $estudianteId) {
-        $hash = password_hash($password, PASSWORD_DEFAULT);
-        $stmt = $this->conn->prepare("INSERT INTO usuarios (username, password, rol, referer_id) VALUES (?, ?, 'estudiante', ?)");
-        $stmt->bind_param("ssi", $username, $hash, $estudianteId);
-        $stmt->execute();
-        $stmt->close();
-    }
 }

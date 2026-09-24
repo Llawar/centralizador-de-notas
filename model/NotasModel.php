@@ -97,6 +97,10 @@ class NotasModel {
         return $row;
     }
 
+    /**
+     * @deprecated Usar ServicioNotas::recalcFila() como única fuente de verdad 30/70.
+     * Se mantiene por compatibilidad legacy (AVG*0.3/0.7 divergente).
+     */
     public function calcularParcial($estudianteId, $cursoId, $materiaId) {
         $conocer = $this->calcularPromedio($estudianteId, $cursoId, $materiaId, 'conocer');
         $hacer = $this->calcularPromedio($estudianteId, $cursoId, $materiaId, 'hacer');

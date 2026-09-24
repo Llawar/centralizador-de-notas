@@ -49,4 +49,46 @@ class UsuariosModel {
         $stmt->close();
         return $result;
     }
+
+    public function generarUsername(string $nombre): string
+    {
+        $partes = preg_split('/\s+/', trim($nombre));
+        $partes = array_values(array_filter($partes, function ($p) {
+            return !preg_match('/^(ing|lic|dra|dr|mgr|mba)\.?$/i', $p);
+        }));
+        $base = strtolower($partes[0] ?? 'usuario');
+        if (isset($partes[1])) {
+            $base .= '.' . strtolower($partes[1]);
+        }
+        $base = preg_replace('/[^a-z0-9\.]/', '', $base);
+        if ($base === '' || $base === '.') $base = 'usuario';
+        $username = $base;
+        $i = 1;
+        while ($this->existeUsername($username)) {
+            $i++;
+            $username = $base . $i;
+        }
+        return $username;
+    }
+
+    public function existeUsername(string $u): bool
+    {
+        $stmt = $this->conn->prepare("SELECT id FROM usuarios WHERE username = ?");
+        $stmt->bind_param("s", $u);
+        $stmt->execute();
+        $stmt->store_result();
+        $existe = $stmt->num_rows > 0;
+        $stmt->close();
+        return $existe;
+    }
+
+    public function crearUsuarioPara(string $username, string $plainPass, string $rol, int $refererId): bool
+    {
+        $hash = password_hash($plainPass, PASSWORD_DEFAULT);
+        $stmt = $this->conn->prepare("INSERT INTO usuarios (username, password, rol, referer_id) VALUES (?, ?, ?, ?)");
+        $stmt->bind_param("sssi", $username, $hash, $rol, $refererId);
+        $result = $stmt->execute();
+        $stmt->close();
+        return $result;
+    }
 }
