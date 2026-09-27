@@ -11,7 +11,7 @@ class CursosModel {
     public function getAll() {
         $sql = "SELECT c.*, ca.nombre AS carrera_nombre, ca.tipo AS carrera_tipo, ca.duracion AS carrera_duracion FROM cursos c
                 JOIN carreras ca ON c.carrera_id = ca.id
-                ORDER BY c.gestion DESC, c.nombre, c.paralelo";
+                ORDER BY c.gestion DESC, ca.nombre, c.anio_carrera, c.turno, c.paralelo";
         $result = $this->conn->query($sql);
         $cursos = [];
         while ($row = $result->fetch_assoc()) {
@@ -21,8 +21,7 @@ class CursosModel {
     }
 
     public function getByCarrera($carreraId) {
-        $sql = "SELECT * FROM cursos WHERE carrera_id = ? ORDER BY anio, paralelo";
-        $stmt = $this->conn->prepare($sql);
+        $stmt = $this->conn->prepare("SELECT * FROM cursos WHERE carrera_id = ? ORDER BY anio_carrera, turno, paralelo, gestion DESC");
         $stmt->bind_param("i", $carreraId);
         $stmt->execute();
         $result = $stmt->get_result();
@@ -38,7 +37,7 @@ class CursosModel {
         $sql = "SELECT c.*, ca.nombre AS carrera_nombre, ca.tipo AS carrera_tipo, ca.duracion AS carrera_duracion FROM cursos c
                 JOIN carreras ca ON c.carrera_id = ca.id
                 WHERE c.gestion = ?
-                ORDER BY c.nombre, c.paralelo";
+                ORDER BY ca.nombre, c.anio_carrera, c.turno, c.paralelo";
         $stmt = $this->conn->prepare($sql);
         $stmt->bind_param("i", $gestion);
         $stmt->execute();
@@ -47,6 +46,18 @@ class CursosModel {
         while ($row = $result->fetch_assoc()) {
             $cursos[] = $row;
         }
+        $stmt->close();
+        return $cursos;
+    }
+
+    public function getByTurno($turno) {
+        $stmt = $this->conn->prepare("SELECT c.*, ca.nombre AS carrera_nombre FROM cursos c JOIN carreras ca ON c.carrera_id=ca.id WHERE c.turno = ? ORDER BY c.gestion DESC, ca.nombre, c.anio_carrera, c.paralelo");
+        if (!$stmt) return [];
+        $stmt->bind_param("s", $turno);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $cursos = [];
+        while ($row = $result->fetch_assoc()) { $cursos[] = $row; }
         $stmt->close();
         return $cursos;
     }
@@ -61,12 +72,43 @@ class CursosModel {
         return $curso;
     }
 
-    public function crear($nombre, $anio, $paralelo, $carreraId, $gestion, $semestre) {
-        $stmt = $this->conn->prepare("INSERT INTO cursos (nombre, anio, paralelo, carrera_id, gestion, semestre) VALUES (?, ?, ?, ?, ?, ?)");
-        $stmt->bind_param("sisiii", $nombre, $anio, $paralelo, $carreraId, $gestion, $semestre);
+    public function crear($nombre, $anio, $paralelo, $carreraId, $gestion, $semestre, $turno = 'mañana') {
+        $anioCarrera = max(1, min(3, (int) $anio));
+        $turno = in_array($turno, ['mañana','tarde'], true) ? $turno : 'mañana';
+        $paralelo = $paralelo !== '' ? $paralelo : 'A';
+        $stmt = $this->conn->prepare("INSERT INTO cursos (nombre, anio_carrera, turno, paralelo, carrera_id, gestion, semestre) VALUES (?, ?, ?, ?, ?, ?, ?)");
+        $stmt->bind_param("sissiii", $nombre, $anioCarrera, $turno, $paralelo, $carreraId, $gestion, $semestre);
         $result = $stmt->execute();
         $stmt->close();
         return $result;
+    }
+
+    /**
+     * Materias impartidas: materias cuyo anio_carrera coincide con el curso
+     * + info de docente asignado (si existe)
+     */
+    public function getMateriasImpartidas($cursoId) {
+        $curso = $this->getById($cursoId);
+        if (!$curso) return [];
+        $anioCarrera = (int) $curso['anio_carrera'];
+        $carreraId = (int) $curso['carrera_id'];
+        $sql = "SELECT m.id, m.nombre, m.codigo, m.anio_carrera,
+                       dmc.docente_id, d.nombre_completo AS docente_nombre
+                FROM materias m
+                LEFT JOIN docente_materia_curso dmc ON dmc.materia_id = m.id AND dmc.curso_id = ?
+                LEFT JOIN docentes d ON d.id = dmc.docente_id
+                WHERE m.carrera_id = ? AND m.anio_carrera = ?
+                ORDER BY m.nombre";
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bind_param("iii", $cursoId, $carreraId, $anioCarrera);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $materias = [];
+        while ($row = $result->fetch_assoc()) {
+            $materias[] = $row;
+        }
+        $stmt->close();
+        return $materias;
     }
 
     public function getEstudiantes($cursoId) {

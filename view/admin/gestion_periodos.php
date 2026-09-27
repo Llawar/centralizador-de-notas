@@ -1,11 +1,7 @@
 <?php
-require_once __DIR__ . '/../../config/app.php';
-require_once __DIR__ . '/../../includes/auth.php';
-auth_guard('admin');
-require_once __DIR__ . '/../../includes/csrf.php';
+require_once __DIR__ . '/_base.php';
 require_once __DIR__ . '/../../model/CursosModel.php';
 require_once __DIR__ . '/../../model/ParcialPeriodoModel.php';
-require_once __DIR__ . '/../../includes/flash.php';
 
 $cursosModel = new CursosModel();
 $parcialModel = new ParcialPeriodoModel();

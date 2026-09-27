@@ -43,7 +43,7 @@ $parcialActivo   = $parcialModel->parcialActivo($cursoId, $materiaId, $gestion, 
 $etiquetaActivo  = $parcialActivo !== null ? ParcialPeriodoModel::etiqueta($parcialActivo) : '';
 $periodoDefault  = $carreraTipo === 'semestral'
     ? ServicioNotas::semestreTexto((int)($curso['semestre'] ?? 1))
-    : ParcialPeriodoModel::añoTexto($curso['anio'] ?? 1);
+    : ParcialPeriodoModel::añoTexto((int)$curso['anio_carrera']);
 
 // Configuracion editable de la hoja (registro_config)
 $regConfigModel = new RegistroConfigModel();

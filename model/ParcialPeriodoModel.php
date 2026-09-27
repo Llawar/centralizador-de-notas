@@ -216,6 +216,28 @@ class ParcialPeriodoModel {
         return $row['tipo'] ?? null;
     }
 
+    /**
+     * Asegura 2 o 4 filas según carreras.tipo para una materia concreta del curso (idempotente).
+     * Requerido por plan-003 A4: usado al asignar docente+materia a un curso.
+     */
+    public function asegurarPeriodosParaCursoMateria($cursoId, $materiaId, $gestion) {
+        $tipo = $this->tipoDeCurso($cursoId) ?? 'anual';
+        $ciclo = self::ciclo($tipo);
+        $opciones = array_merge($ciclo, ['Parcial']);
+        $stmt = $this->conn->prepare(
+            "INSERT IGNORE INTO parcial_periodo (curso_id, gestion, materia_id, parcial, estado) VALUES (?, ?, ?, ?, ?)"
+        );
+        $affected = 0;
+        foreach ($opciones as $i => $parcial) {
+            $estado = ($i === 0) ? 'abierto' : 'cerrado';
+            $stmt->bind_param("iiiss", $cursoId, $gestion, $materiaId, $parcial, $estado);
+            $stmt->execute();
+            $affected += $stmt->affected_rows;
+        }
+        $stmt->close();
+        return $affected;
+    }
+
     // Resumen por curso para el panel admin (por cada parcial del ciclo)
     public function resumenCurso($cursoId, $gestion, $tipo) {
         $this->asegurarCurso($cursoId, $gestion, $tipo);

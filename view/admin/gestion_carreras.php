@@ -1,10 +1,6 @@
 <?php
-require_once __DIR__ . '/../../config/app.php';
-require_once __DIR__ . '/../../includes/auth.php';
-auth_guard('admin');
-require_once __DIR__ . '/../../includes/csrf.php';
+require_once __DIR__ . '/_base.php';
 require_once __DIR__ . '/../../model/CarrerasModel.php';
-require_once __DIR__ . '/../../includes/flash.php';
 
 $model = new CarrerasModel();
 $carreras = $model->getAll();
@@ -27,11 +23,57 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 $titulo = 'Gestionar Carreras';
 require_once __DIR__ . '/../../includes/layout_header.php';
 ?>
-        <h1>Gestionar Carreras</h1>
+        <div class="page-head" style="margin-bottom:18px;">
+            <h1>Gestionar Carreras</h1>
+            <div class="head-actions">
+                <input type="search" id="qCarreras" placeholder="Buscar carrera…" style="padding:9px 12px;border:1px solid var(--border);border-radius:10px;background:rgba(255,255,255,.05);color:var(--text);">
+                <button type="button" class="btn btn-primary" onclick="document.getElementById('modalCrear').classList.add('active')">+ Nueva Carrera</button>
+            </div>
+        </div>
 
         <?= flash_html(['created'=>'Carrera creada exitosamente.','updated'=>'Carrera actualizada exitosamente.','deleted'=>'Carrera eliminada exitosamente.']) ?>
 
-        <div class="form-container">
+        <div class="tabla-contenedor">
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Nombre</th>
+                        <th>Duración</th>
+                        <th>Tipo</th>
+                        <th>Parciales</th>
+                        <th>Estado</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="tbodyCarreras">
+                    <?php foreach ($carreras as $c): ?>
+                    <tr>
+                        <td><?php echo (int) $c['id']; ?></td>
+                        <td><a href="<?= BASE_URL ?>/view/admin/ver_carrera.php?id=<?php echo (int) $c['id']; ?>" style="color:var(--accent-2);text-decoration:none;"><?php echo htmlspecialchars($c['nombre']); ?></a></td>
+                        <td><?php echo (int) $c['duracion']; ?></td>
+                        <td><?php echo $c['tipo'] === 'semestral' ? 'Semestral' : 'Anual'; ?></td>
+                        <td><?php echo $c['tipo'] === 'semestral' ? '2 por semestre' : '4 al año'; ?></td>
+                        <td><?php echo htmlspecialchars($c['estado']); ?></td>
+                        <td>
+                            <?= acciones_columna((int)$c['id'], ['edit', 'delete'], [
+                                'edit' => [
+                                    'onclick' => "editarCarrera({$c['id']}, '".htmlspecialchars($c['nombre'], ENT_QUOTES)."', {$c['duracion']}, '".$c['tipo']."', '".$c['estado']."')"
+                                ],
+                                'delete' => [
+                                    'form_action' => 'gestion_carreras.php',
+                                    'confirm' => '¿Eliminar esta carrera?'
+                                ]
+                            ]) ?>
+                        </td>
+                    </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+        </div>
+
+    <div id="modalCrear" class="modal-overlay">
+        <div class="modal">
             <h3>Crear Nueva Carrera</h3>
             <form method="POST">
                 <?php echo csrf_campo(); ?>
@@ -41,7 +83,7 @@ require_once __DIR__ . '/../../includes/layout_header.php';
                     <input type="text" name="nombre" required>
                 </div>
                 <div class="form-group">
-                    <label>Duracion (años)</label>
+                    <label>Duración (años)</label>
                     <input type="number" name="duracion" value="3" min="1" max="10" required>
                 </div>
                 <div class="form-group">
@@ -51,46 +93,13 @@ require_once __DIR__ . '/../../includes/layout_header.php';
                         <option value="semestral">Semestral (2 parciales por semestre)</option>
                     </select>
                 </div>
-                <button type="submit" class="btn btn-success">Crear Carrera</button>
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-success">Crear Carrera</button>
+                    <button type="button" class="btn btn-danger" onclick="document.getElementById('modalCrear').classList.remove('active')">Cancelar</button>
+                </div>
             </form>
         </div>
-
-        <div class="tabla-contenedor">
-            <table>
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Nombre</th>
-                        <th>Duracion (años)</th>
-                        <th>Tipo</th>
-                        <th>Parciales</th>
-                        <th>Estado</th>
-                        <th>Acciones</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php foreach ($carreras as $c): ?>
-                    <tr>
-                        <td><?php echo $c['id']; ?></td>
-                        <td><?php echo htmlspecialchars($c['nombre']); ?></td>
-                        <td><?php echo (int) $c['duracion']; ?></td>
-                        <td><?php echo $c['tipo'] === 'semestral' ? 'Semestral' : 'Anual'; ?></td>
-                        <td><?php echo $c['tipo'] === 'semestral' ? '2 por semestre' : '4 al año'; ?></td>
-                        <td><?php echo htmlspecialchars($c['estado']); ?></td>
-                        <td>
-                            <button class="btn btn-primary" onclick="editarCarrera(<?php echo (int) $c['id']; ?>, '<?php echo htmlspecialchars($c['nombre'], ENT_QUOTES); ?>', <?php echo (int) $c['duracion']; ?>, '<?php echo htmlspecialchars($c['tipo'], ENT_QUOTES); ?>', '<?php echo htmlspecialchars($c['estado'], ENT_QUOTES); ?>')">Editar</button>
-                            <form method="POST" style="display:inline;" onsubmit="return confirm('Eliminar esta carrera?')">
-                                <?php echo csrf_campo(); ?>
-                                <input type="hidden" name="accion" value="eliminar">
-                                <input type="hidden" name="id" value="<?php echo (int) $c['id']; ?>">
-                                <button type="submit" class="btn btn-danger">Eliminar</button>
-                            </form>
-                        </td>
-                    </tr>
-                    <?php endforeach; ?>
-                </tbody>
-            </table>
-        </div>
+    </div>
 
     <div id="modalEditar" class="modal-overlay">
         <div class="modal">
@@ -104,7 +113,7 @@ require_once __DIR__ . '/../../includes/layout_header.php';
                     <input type="text" name="nombre" id="editNombre" required>
                 </div>
                 <div class="form-group">
-                    <label>Duracion (años)</label>
+                    <label>Duración (años)</label>
                     <input type="number" name="duracion" id="editDuracion" min="1" max="10" required>
                 </div>
                 <div class="form-group">
@@ -138,5 +147,11 @@ require_once __DIR__ . '/../../includes/layout_header.php';
         document.getElementById('editEstado').value = estado;
         document.getElementById('modalEditar').classList.add('active');
     }
+    (function(){
+        var q=document.getElementById('qCarreras'); var tb=document.getElementById('tbodyCarreras');
+        if(!q||!tb) return;
+        q.addEventListener('input',function(){ var t=q.value.toLowerCase(); Array.from(tb.rows).forEach(function(r){ r.style.display=r.textContent.toLowerCase().includes(t)?'':'none'; }); });
+        document.querySelectorAll('.modal-overlay').forEach(function(m){ m.addEventListener('click',function(e){ if(e.target===m) m.classList.remove('active'); }); });
+    })();
     </script>
 <?php require_once __DIR__ . '/../../includes/layout_footer.php'; ?>

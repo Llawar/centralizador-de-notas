@@ -45,7 +45,7 @@ class EstudiantesModel {
     }
 
     public function getMaterias($estudianteId) {
-        $sql = "SELECT m.nombre AS materia, m.codigo, c.nombre AS curso, c.anio, c.paralelo,
+        $sql = "SELECT m.nombre AS materia, m.codigo, c.nombre AS curso, c.anio_carrera, c.paralelo,
                        ca.nombre AS carrera, d.nombre_completo AS docente, c.gestion, c.semestre,
                        c.id AS curso_id, m.id AS materia_id
                 FROM estudiantes_cursos ec
@@ -55,7 +55,7 @@ class EstudiantesModel {
                 JOIN materias m ON m.id = dmc.materia_id
                 JOIN docentes d ON d.id = dmc.docente_id
                 WHERE ec.estudiante_id = ?
-                ORDER BY ca.nombre, c.anio, m.nombre";
+                ORDER BY ca.nombre, c.anio_carrera, m.nombre";
         $stmt = $this->conn->prepare($sql);
         $stmt->bind_param("i", $estudianteId);
         $stmt->execute();

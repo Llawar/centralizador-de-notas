@@ -41,7 +41,7 @@ $materias = $model->getMaterias($_SESSION['est_id']);
                             <td><?php echo htmlspecialchars($m['materia']); ?></td>
                             <td><?php echo htmlspecialchars($m['codigo']); ?></td>
                             <td><?php echo htmlspecialchars($m['curso']); ?></td>
-                            <td><?php echo $m['anio']; ?></td>
+                            <td><?php echo $m['anio_carrera']; ?></td>
                             <td><?php echo $m['paralelo']; ?></td>
                             <td><?php echo htmlspecialchars($m['docente']); ?></td>
                         </tr>
