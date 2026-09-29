@@ -11,10 +11,45 @@ class EstudiantesModel {
     public function getAll() {
         $result = $this->conn->query("SELECT * FROM estudiantes ORDER BY nombre_completo");
         $estudiantes = [];
-        while ($row = $result->fetch_assoc()) {
-            $estudiantes[] = $row;
-        }
+        while ($row = $result->fetch_assoc()) { $estudiantes[] = $row; }
         return $estudiantes;
+    }
+
+    /** Devuelve ['data'=>[], 'total'=>int] con paginación y búsqueda opcional */
+    public function getAllPaginated(int $limit, int $offset, string $search = ''): array {
+        $where = '';
+        $params = [];
+        $types = '';
+        if ($search !== '') {
+            $where = "WHERE nombre_completo LIKE ? OR ci LIKE ? OR matricula LIKE ?";
+            $like = "%$search%";
+            $params = [$like, $like, $like];
+            $types = 'sss';
+        }
+        // total
+        $sqlCount = "SELECT COUNT(*) AS total FROM estudiantes $where";
+        $stmt = $this->conn->prepare($sqlCount);
+        if ($params) $stmt->bind_param($types, ...$params);
+        $stmt->execute();
+        $total = (int) ($stmt->get_result()->fetch_assoc()['total'] ?? 0);
+        $stmt->close();
+        // data
+        $sql = "SELECT * FROM estudiantes $where ORDER BY nombre_completo LIMIT ? OFFSET ?";
+        $stmt = $this->conn->prepare($sql);
+        if ($params) {
+            $params[] = $limit;
+            $params[] = $offset;
+            $types .= 'ii';
+            $stmt->bind_param($types, ...$params);
+        } else {
+            $stmt->bind_param('ii', $limit, $offset);
+        }
+        $stmt->execute();
+        $res = $stmt->get_result();
+        $data = [];
+        while ($row = $res->fetch_assoc()) { $data[] = $row; }
+        $stmt->close();
+        return ['data' => $data, 'total' => $total];
     }
 
     public function getById($id) {
@@ -27,95 +62,9 @@ class EstudiantesModel {
         return $estudiante;
     }
 
-    public function getByCurso($cursoId) {
-        $sql = "SELECT e.* FROM estudiantes e
-                JOIN estudiantes_cursos ec ON ec.estudiante_id = e.id
-                WHERE ec.curso_id = ?
-                ORDER BY e.nombre_completo";
-        $stmt = $this->conn->prepare($sql);
-        $stmt->bind_param("i", $cursoId);
-        $stmt->execute();
-        $result = $stmt->get_result();
-        $estudiantes = [];
-        while ($row = $result->fetch_assoc()) {
-            $estudiantes[] = $row;
-        }
-        $stmt->close();
-        return $estudiantes;
-    }
-
-    public function getMaterias($estudianteId) {
-        $sql = "SELECT m.nombre AS materia, m.codigo, c.nombre AS curso, c.anio_carrera, c.paralelo,
-                       ca.nombre AS carrera, d.nombre_completo AS docente, c.gestion, c.semestre,
-                       c.id AS curso_id, m.id AS materia_id
-                FROM estudiantes_cursos ec
-                JOIN cursos c ON ec.curso_id = c.id
-                JOIN carreras ca ON c.carrera_id = ca.id
-                JOIN docente_materia_curso dmc ON dmc.curso_id = c.id
-                JOIN materias m ON m.id = dmc.materia_id
-                JOIN docentes d ON d.id = dmc.docente_id
-                WHERE ec.estudiante_id = ?
-                ORDER BY ca.nombre, c.anio_carrera, m.nombre";
-        $stmt = $this->conn->prepare($sql);
-        $stmt->bind_param("i", $estudianteId);
-        $stmt->execute();
-        $result = $stmt->get_result();
-        $materias = [];
-        while ($row = $result->fetch_assoc()) {
-            $materias[] = $row;
-        }
-        $stmt->close();
-        return $materias;
-    }
-
-    public function crear($ci, $nombre, $matricula, $anioIngreso, $email, $password) {
-        $hash = password_hash($password, PASSWORD_DEFAULT);
-        $stmt = $this->conn->prepare("INSERT INTO estudiantes (ci, nombre_completo, matricula, anio_ingreso, email, password) VALUES (?, ?, ?, ?, ?, ?)");
-        $stmt->bind_param("ssssss", $ci, $nombre, $matricula, $anioIngreso, $email, $hash);
-        $result = $stmt->execute();
-        $id = $this->conn->insert_id;
-        $stmt->close();
-
-        if ($result) {
-            require_once __DIR__ . '/UsuariosModel.php';
-            $uModel = new UsuariosModel();
-            $username = $uModel->generarUsername($nombre);
-            $uModel->crearUsuarioPara($username, $password, 'estudiante', $id);
-        }
-        return $result;
-    }
-
-    public function estaInscrito($estudianteId, $cursoId) {
-        $stmt = $this->conn->prepare("SELECT 1 FROM estudiantes_cursos WHERE estudiante_id = ? AND curso_id = ? LIMIT 1");
-        $stmt->bind_param("ii", $estudianteId, $cursoId);
-        $stmt->execute();
-        $stmt->store_result();
-        $existe = $stmt->num_rows > 0;
-        $stmt->close();
-        return $existe;
-    }
-
-
-
-    public function actualizar($id, $ci, $nombre, $matricula, $anioIngreso, $email, $estado) {
-        $stmt = $this->conn->prepare("UPDATE estudiantes SET ci = ?, nombre_completo = ?, matricula = ?, anio_ingreso = ?, email = ?, estado = ? WHERE id = ?");
-        $stmt->bind_param("ssssssi", $ci, $nombre, $matricula, $anioIngreso, $email, $estado, $id);
-        $result = $stmt->execute();
-        $stmt->close();
-        return $result;
-    }
-
-    public function inscribirCurso($estudianteId, $cursoId, $semestre = 1) {
-        $stmt = $this->conn->prepare("INSERT IGNORE INTO estudiantes_cursos (estudiante_id, curso_id, semestre) VALUES (?, ?, ?)");
-        $stmt->bind_param("iii", $estudianteId, $cursoId, $semestre);
-        $result = $stmt->execute();
-        $stmt->close();
-        return $result;
-    }
-
-    public function buscarPorCi($ci) {
-        $stmt = $this->conn->prepare("SELECT id, nombre_completo, estado FROM estudiantes WHERE ci = ?");
-        $stmt->bind_param("s", $ci);
+    public function getByNombreCi($nombre, $ci) {
+        $stmt = $this->conn->prepare("SELECT * FROM estudiantes WHERE nombre_completo = ? AND ci = ? LIMIT 1");
+        $stmt->bind_param("ss", $nombre, $ci);
         $stmt->execute();
         $result = $stmt->get_result();
         $estudiante = $result->fetch_assoc();
@@ -123,45 +72,106 @@ class EstudiantesModel {
         return $estudiante;
     }
 
-    public function idsVacios($cursoId, $materiaId) {
-        $sql = "SELECT ec.estudiante_id AS id
-                FROM estudiantes_cursos ec
-                JOIN estudiantes e ON e.id = ec.estudiante_id
-                WHERE ec.curso_id = ?
-                  AND NOT EXISTS (
-                      SELECT 1 FROM notas n
-                      WHERE n.estudiante_id = ec.estudiante_id
-                        AND n.curso_id = ? AND n.materia_id = ?)
-                  AND NOT EXISTS (
-                      SELECT 1 FROM asistencia a
-                      WHERE a.estudiante_id = ec.estudiante_id
-                        AND a.curso_id = ? AND a.materia_id = ?)";
+    public function getByCurso($cursoId, $gestionId = null) {
+        if ($gestionId === null) {
+            $g = $this->conn->query("SELECT id FROM gestiones WHERE estado='abierta' LIMIT 1");
+            $row = $g ? $g->fetch_assoc() : null;
+            $gestionId = $row ? (int) $row['id'] : 0;
+        }
+        $sql = "SELECT e.* FROM estudiantes e
+                JOIN estudiantes_secciones es ON es.estudiante_id = e.id
+                WHERE es.curso_id = ? AND es.gestion_id = ?
+                ORDER BY e.nombre_completo";
         $stmt = $this->conn->prepare($sql);
-        $stmt->bind_param("iiiii", $cursoId, $cursoId, $materiaId, $cursoId, $materiaId);
+        $stmt->bind_param("ii", $cursoId, $gestionId);
         $stmt->execute();
         $result = $stmt->get_result();
-        $ids = [];
-        while ($row = $result->fetch_assoc()) {
-            $ids[] = (int) $row['id'];
-        }
+        $estudiantes = [];
+        while ($row = $result->fetch_assoc()) { $estudiantes[] = $row; }
         $stmt->close();
-        return $ids;
+        return $estudiantes;
     }
 
-    public function quitarVacios($cursoId, $materiaId) {
-        $ids = $this->idsVacios($cursoId, $materiaId);
-        if (empty($ids)) {
-            return 0;
-        }
-        $in = implode(',', array_fill(0, count($ids), '?'));
-        $sql = "DELETE FROM estudiantes_cursos WHERE curso_id = ? AND estudiante_id IN ($in)";
-        $stmt = $this->conn->prepare($sql);
-        $types = str_repeat('i', count($ids) + 1);
-        $params = array_merge([$cursoId], $ids);
-        $stmt->bind_param($types, ...$params);
+    /** Crea estudiante + usuario (clave aleatoria de 6). Retorna ['id'=>..,'password'=>plain] o false. */
+    public function crear($ci, $nombre, $matricula, $anioIngreso, $password = null) {
+        $stmt = $this->conn->prepare("INSERT INTO estudiantes (ci, nombre_completo, matricula, anio_ingreso) VALUES (?, ?, ?, ?)");
+        $stmt->bind_param("ssss", $ci, $nombre, $matricula, $anioIngreso);
+        $result = $stmt->execute();
+        $newId = $result ? $this->conn->insert_id : 0;
+        $stmt->close();
+        if (!$result || !$newId) return false;
+        require_once __DIR__ . '/UsuariosModel.php';
+        $u = new UsuariosModel();
+        if ($u->existeUsername($ci)) return ['id' => $newId, 'password' => null];
+        $plain = $u->crearParaEstudiante($newId, $ci, $password);
+        if ($plain === false) return false;
+        return ['id' => $newId, 'password' => $plain];
+    }
+
+    /** Resetea la clave del usuario vinculado. Retorna el texto plano o false. */
+    public function resetearPassword($estudianteId) {
+        require_once __DIR__ . '/UsuariosModel.php';
+        $u = new UsuariosModel();
+        $usr = $u->getByEstudianteId((int) $estudianteId);
+        if (!$usr) return false;
+        return $u->resetearPassword((int) $usr['id']);
+    }
+
+    public function actualizar($id, $ci, $nombre, $matricula, $anioIngreso, $estado) {
+        $stmt = $this->conn->prepare("UPDATE estudiantes SET ci = ?, nombre_completo = ?, matricula = ?, anio_ingreso = ?, estado = ? WHERE id = ?");
+        $stmt->bind_param("sssssi", $ci, $nombre, $matricula, $anioIngreso, $estado, $id);
         $result = $stmt->execute();
         $stmt->close();
-        return $result ? count($ids) : 0;
+        return $result;
+    }
+
+    public function inscribirCurso($estudianteId, $cursoId, $gestionId, $semestre = 1) {
+        $stmt = $this->conn->prepare("INSERT IGNORE INTO estudiantes_secciones (estudiante_id, curso_id, gestion_id, semestre) VALUES (?, ?, ?, ?)");
+        $stmt->bind_param("iiii", $estudianteId, $cursoId, $gestionId, $semestre);
+        $result = $stmt->execute();
+        $stmt->close();
+        return $result;
+    }
+
+    public function reinscribir($estudianteId, $cursoId, $gestionId, $semestre = 1) {
+        $stmt = $this->conn->prepare("UPDATE estudiantes_secciones SET curso_id = ?, semestre = ? WHERE estudiante_id = ? AND gestion_id = ?");
+        $stmt->bind_param("iiii", $cursoId, $semestre, $estudianteId, $gestionId);
+        $stmt->execute();
+        if ($stmt->affected_rows === 0) {
+            $stmt->close();
+            return $this->inscribirCurso($estudianteId, $cursoId, $gestionId, $semestre);
+        }
+        $stmt->close();
+        return true;
+    }
+
+    public function estaInscrito($estudianteId, $cursoId, $gestionId) {
+        $stmt = $this->conn->prepare("SELECT 1 FROM estudiantes_secciones WHERE estudiante_id = ? AND curso_id = ? AND gestion_id = ? LIMIT 1");
+        $stmt->bind_param("iii", $estudianteId, $cursoId, $gestionId);
+        $stmt->execute();
+        $stmt->store_result();
+        $existe = $stmt->num_rows > 0;
+        $stmt->close();
+        return $existe;
+    }
+
+    public function darDeBaja(int $estudianteId, int $cursoId, int $gestionId): bool {
+        $stmt = $this->conn->prepare("DELETE FROM estudiantes_secciones WHERE estudiante_id = ? AND curso_id = ? AND gestion_id = ? LIMIT 1");
+        $stmt->bind_param("iii", $estudianteId, $cursoId, $gestionId);
+        $result = $stmt->execute();
+        $stmt->close();
+        return (bool) $result;
+    }
+
+    public function getHistorialPorEstudiante(int $estudianteId): array {
+        $stmt = $this->conn->prepare("SELECT es.curso_id, es.gestion_id, c.anio_carrera, c.turno, c.paralelo, ca.nombre AS carrera_nombre, g.anio AS gestion_anio FROM estudiantes_secciones es JOIN cursos c ON c.id = es.curso_id JOIN carreras ca ON ca.id = c.carrera_id JOIN gestiones g ON g.id = es.gestion_id WHERE es.estudiante_id = ? ORDER BY g.anio DESC");
+        $stmt->bind_param("i", $estudianteId);
+        $stmt->execute();
+        $res = $stmt->get_result();
+        $historial = [];
+        while ($r = $res->fetch_assoc()) $historial[] = $r;
+        $stmt->close();
+        return $historial;
     }
 
     public function eliminar($id) {
@@ -169,14 +179,6 @@ class EstudiantesModel {
         $stmt->bind_param("i", $id);
         $result = $stmt->execute();
         $stmt->close();
-
-        if ($result) {
-            $stmt = $this->conn->prepare("DELETE FROM usuarios WHERE rol = 'estudiante' AND referer_id = ?");
-            $stmt->bind_param("i", $id);
-            $stmt->execute();
-            $stmt->close();
-        }
         return $result;
     }
-
 }

@@ -263,4 +263,94 @@ class ParcialPeriodoModel {
         $stmt->close();
         return $resumen;
     }
+
+    /* ───────── Variantes con gestion_id (esquema vigente) ─────────
+       Usan docente_materia_seccion + parcial_periodo.gestion_id.
+       Las gestiones (año calendario) viven en la tabla gestiones. */
+
+    /** Materias con docente asignado en curso+gestion */
+    public function materiasAsignadas($cursoId, $gestionId): array {
+        $stmt = $this->conn->prepare("SELECT DISTINCT materia_id FROM docente_materia_seccion WHERE curso_id = ? AND gestion_id = ?");
+        $stmt->bind_param("ii", $cursoId, $gestionId);
+        $stmt->execute();
+        $res = $stmt->get_result();
+        $ids = [];
+        while ($row = $res->fetch_assoc()) { $ids[] = (int)$row['materia_id']; }
+        $stmt->close();
+        return $ids;
+    }
+
+    /** Crea las filas del curso+gestion si faltan (primer parcial abierto, resto cerrado) */
+    public function asegurarCursoGestion($cursoId, $gestionId, $tipo) {
+        $materiaIds = $this->materiasAsignadas($cursoId, $gestionId);
+        if (!$materiaIds) { return 0; }
+        $opciones = array_merge(self::ciclo($tipo), ['Parcial']);
+        $stmt = $this->conn->prepare(
+            "INSERT IGNORE INTO parcial_periodo (curso_id, gestion_id, materia_id, parcial, estado) VALUES (?, ?, ?, ?, ?)"
+        );
+        $affected = 0;
+        foreach ($materiaIds as $matId) {
+            foreach ($opciones as $i => $parcial) {
+                $estado = ($i === 0) ? 'abierto' : 'cerrado';
+                $stmt->bind_param("iiiss", $cursoId, $gestionId, $matId, $parcial, $estado);
+                $stmt->execute();
+                $affected += $stmt->affected_rows;
+            }
+        }
+        $stmt->close();
+        return $affected;
+    }
+
+    /** Resumen por curso+gestion para el panel admin */
+    public function resumenCursoGestion($cursoId, $gestionId, $tipo) {
+        $this->asegurarCursoGestion($cursoId, $gestionId, $tipo);
+        $opciones = self::opciones($tipo);
+        $resumen = [];
+        foreach ($opciones as $p) {
+            $resumen[$p] = ['total' => 0, 'abiertos' => 0, 'enviados' => 0, 'cerrados' => 0];
+        }
+        $stmt = $this->conn->prepare(
+            "SELECT parcial, estado, COUNT(*) AS n FROM parcial_periodo
+             WHERE curso_id = ? AND gestion_id = ? GROUP BY parcial, estado"
+        );
+        $stmt->bind_param("ii", $cursoId, $gestionId);
+        $stmt->execute();
+        $res = $stmt->get_result();
+        while ($row = $res->fetch_assoc()) {
+            if (!isset($resumen[$row['parcial']])) {
+                $resumen[$row['parcial']] = ['total' => 0, 'abiertos' => 0, 'enviados' => 0, 'cerrados' => 0];
+            }
+            $resumen[$row['parcial']]['total'] += (int)$row['n'];
+            $resumen[$row['parcial']][$row['estado'] . 's'] += (int)$row['n'];
+        }
+        $stmt->close();
+        return $resumen;
+    }
+
+    /** Abre el parcial para todas las materias asignadas del curso+gestion */
+    public function abrirGestion($cursoId, $gestionId, $parcial, $adminId) {
+        $this->asegurarCursoGestion($cursoId, $gestionId, $this->tipoDeCurso($cursoId) ?? 'anual');
+        $stmt = $this->conn->prepare(
+            "INSERT INTO parcial_periodo (curso_id, gestion_id, materia_id, parcial, estado, abierto_por)
+             SELECT DISTINCT ? AS curso_id, ? AS gestion_id, dms.materia_id AS materia_id, ? AS parcial, 'abierto' AS estado, ? AS abierto_por
+             FROM docente_materia_seccion dms
+             WHERE dms.curso_id = ? AND dms.gestion_id = ?
+             ON DUPLICATE KEY UPDATE estado = 'abierto', abierto_por = VALUES(abierto_por)"
+        );
+        $stmt->bind_param("iisiii", $cursoId, $gestionId, $parcial, $adminId, $cursoId, $gestionId);
+        $stmt->execute();
+        $stmt->close();
+        return true;
+    }
+
+    /** Cierra el parcial del curso+gestion */
+    public function cerrarGestion($cursoId, $gestionId, $parcial) {
+        $stmt = $this->conn->prepare(
+            "UPDATE parcial_periodo SET estado = 'cerrado' WHERE curso_id = ? AND gestion_id = ? AND parcial = ?"
+        );
+        $stmt->bind_param("iis", $cursoId, $gestionId, $parcial);
+        $stmt->execute();
+        $stmt->close();
+        return true;
+    }
 }

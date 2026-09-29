@@ -6,10 +6,10 @@
  *   <td><?= acciones_columna($id, ['edit','delete'], $config) ?></td>
  *
  * @param int    $id        ID del registro
- * @param array  $mostrar   Qué botones mostrar: subset de ['edit','delete','view']
+ * @param array  $mostrar   Qué botones mostrar: subset de ['edit','delete','view','reset']
  * @param array  $config    Overrides por acción + common
  * @return string           HTML listo para echo
- */
+  */
 function acciones_columna(int $id, array $mostrar = ['edit', 'delete', 'view'], array $config = []): string
 {
     // Config por defecto (defaults sensatos)
@@ -35,6 +35,14 @@ function acciones_columna(int $id, array $mostrar = ['edit', 'delete', 'view'], 
             'class' => 'btn-ghost',
             'href'  => '',            // obligatorio si se usa 'view'
             'attrs' => '',
+        ],
+        'reset' => [
+            'icon'        => 'i-key',
+            'label'       => 'Reset',
+            'class'       => 'btn-ghost',
+            'form_action' => '',      // URL del form (p.ej. 'gestion_docentes.php')
+            'confirm'     => '¿Generar nueva contraseña? La anterior dejará de funcionar.',
+            'attrs'       => '',
         ],
         'common' => [
             'btn_size' => 'sm',       // sm | md | lg  (afecta padding/fuente)
@@ -90,6 +98,23 @@ function acciones_columna(int $id, array $mostrar = ['edit', 'delete', 'view'], 
                    . "<button type=\"submit\" class=\"btn {$d['class']}\" style=\"{$btnStyle}\"{$attrs}>"
                    . "<svg class=\"ic\" style=\"width:14px;height:14px;\"><use href=\"#{$d['icon']}\"></use></svg>"
                    . htmlspecialchars($d['label'])
+                   . "</button>"
+                   . "</form>";
+    }
+
+    // ----- RESET (nueva contraseña aleatoria, se muestra una sola vez) -----
+    if (in_array('reset', $mostrar, true)) {
+        $r = $cfg['reset'];
+        $action = $r['form_action'] ? 'action="' . htmlspecialchars($r['form_action']) . '"' : '';
+        $confirm = $r['confirm'] ? 'onsubmit="return confirm(\'' . addslashes($r['confirm']) . '\')"' : '';
+        $attrs = $r['attrs'] ? ' ' . $r['attrs'] : '';
+        $buttons[] = "<form method=\"POST\" style=\"display:inline;\" {$action} {$confirm}>"
+                   . csrf_campo()
+                   . "<input type=\"hidden\" name=\"accion\" value=\"resetear\">"
+                   . "<input type=\"hidden\" name=\"id\" value=\"{$id}\">"
+                   . "<button type=\"submit\" class=\"btn {$r['class']}\" style=\"{$btnStyle}\"{$attrs}>"
+                   . "<svg class=\"ic\" style=\"width:14px;height:14px;\"><use href=\"#{$r['icon']}\"></use></svg>"
+                   . htmlspecialchars($r['label'])
                    . "</button>"
                    . "</form>";
     }

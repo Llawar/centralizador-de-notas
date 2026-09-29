@@ -3,129 +3,72 @@ require_once __DIR__ . '/_base.php';
 require_once __DIR__ . '/../../model/DocentesModel.php';
 
 $model = new DocentesModel();
-$docentes = $model->getAll();
+$page = max(1, (int)($_GET['page'] ?? 1));
+$limit = 10;
+$offset = ($page - 1) * $limit;
+$search = trim($_GET['q'] ?? '');
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    csrf_validar();
-    $accion = $_POST['accion'] ?? '';
-    if ($accion === 'crear') {
-        $model->crear($_POST['ci'], $_POST['nombre'], $_POST['email'], $_POST['telefono'], $_POST['password']);
-        redirect("/view/admin/gestion_docentes.php?msg=created");
-    } elseif ($accion === 'editar') {
-        $model->actualizar($_POST['id'], $_POST['ci'], $_POST['nombre'], $_POST['email'], $_POST['telefono'], $_POST['estado']);
-        redirect("/view/admin/gestion_docentes.php?msg=updated");
-    } elseif ($accion === 'eliminar') {
-        $model->eliminar($_POST['id']);
-        redirect("/view/admin/gestion_docentes.php?msg=deleted");
-    }
-}
-$titulo = 'Gestionar Docentes';
+$res = $model->getAllPaginated($limit, $offset, $search);
+$docentes = $res['data'];
+$total = $res['total'];
+$totalPages = max(1, (int)ceil($total / $limit));
+
+$titulo = 'Docentes';
 require_once __DIR__ . '/../../includes/layout_header.php';
 ?>
         <div class="page-head" style="margin-bottom:18px;">
-            <h1>Gestionar Docentes</h1>
+            <div>
+                <h1>Docentes</h1>
+                <p class="subtitle">Consulta de la planta docente (todas las gestiones). Las altas, ediciones, bajas y reseteos se gestionan en Usuarios.</p>
+            </div>
             <div class="head-actions">
-                <input type="search" id="qDocentes" placeholder="Buscar docente…" style="padding:9px 12px;border:1px solid var(--border);border-radius:10px;background:rgba(255,255,255,.05);color:var(--text);">
-                <button type="button" class="btn btn-primary" onclick="document.getElementById('modalCrear').classList.add('active')">+ Nuevo Docente</button>
+                <form method="GET" style="display:flex;gap:8px;">
+                    <input type="search" name="q" value="<?php echo htmlspecialchars($search); ?>" placeholder="Buscar por nombre o CI…" style="padding:9px 12px;border:1px solid var(--border);border-radius:10px;background:rgba(255,255,255,.05);color:var(--text);width:280px;">
+                    <button type="submit" class="btn btn-primary">Buscar</button>
+                    <?php if ($search): ?><a class="btn btn-ghost" href="<?= BASE_URL ?>/view/admin/gestion_docentes.php">Limpiar</a><?php endif; ?>
+                </form>
             </div>
         </div>
-
-        <?= flash_html(['created'=>'Docente creado exitosamente.','updated'=>'Docente actualizado exitosamente.','deleted'=>'Docente eliminado exitosamente.']) ?>
-
         <div class="tabla-contenedor">
             <table>
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>C.I.</th>
-                        <th>Nombre Completo</th>
-                        <th>Email</th>
-                        <th>Teléfono</th>
-                        <th>Estado</th>
-                        <th>Acciones</th>
-                    </tr>
-                </thead>
+                <thead><tr><th>N°</th><th>C.I.</th><th>Nombre</th><th>Año Ingreso</th><th>Estado</th><th>Asignación</th></tr></thead>
                 <tbody id="tbodyDocentes">
-                    <?php foreach ($docentes as $d): ?>
+                    <?php $n = $offset + 1; foreach ($docentes as $d): ?>
                     <tr>
-                        <td><?php echo (int) $d['id']; ?></td>
+                        <td><?php echo $n++; ?></td>
                         <td><?php echo htmlspecialchars($d['ci']); ?></td>
                         <td><?php echo htmlspecialchars($d['nombre_completo']); ?></td>
-                        <td><?php echo htmlspecialchars($d['email']); ?></td>
-                        <td><?php echo htmlspecialchars($d['telefono']); ?></td>
+                        <td><?php echo htmlspecialchars($d['anio_ingreso']); ?></td>
                         <td><?php echo htmlspecialchars($d['estado']); ?></td>
                         <td>
-                            <?= acciones_columna((int)$d['id'], ['edit', 'delete'], [
-                                'edit' => [
-                                    'onclick' => "editarDocente({$d['id']}, '".htmlspecialchars($d['ci'], ENT_QUOTES)."', '".htmlspecialchars($d['nombre_completo'], ENT_QUOTES)."', '".htmlspecialchars($d['email'], ENT_QUOTES)."', '".htmlspecialchars($d['telefono'], ENT_QUOTES)."', '".htmlspecialchars($d['estado'], ENT_QUOTES)."')"
-                                ],
-                                'delete' => [
-                                    'form_action' => 'gestion_docentes.php',
-                                    'confirm' => '¿Eliminar este docente?'
-                                ]
+                            <?= acciones_columna((int)$d['id'], ['view'], [
+                                'view' => ['href' => BASE_URL . '/view/admin/asignaciones.php?docente_id=' . (int)$d['id'], 'label' => 'Asignar']
                             ]) ?>
                         </td>
                     </tr>
                     <?php endforeach; ?>
+                    <?php if (empty($docentes)): ?>
+                    <tr><td colspan="6" style="text-align:center;color:var(--text-3);">No hay docentes</td></tr>
+                    <?php endif; ?>
                 </tbody>
             </table>
         </div>
-
-    <div id="modalCrear" class="modal-overlay">
-        <div class="modal">
-            <h3>Agregar Nuevo Docente</h3>
-            <form method="POST">
-                <?php echo csrf_campo(); ?>
-                <input type="hidden" name="accion" value="crear">
-                <div class="form-group"><label>C.I.</label><input type="text" name="ci" required></div>
-                <div class="form-group"><label>Nombre Completo</label><input type="text" name="nombre" required></div>
-                <div class="form-group"><label>Email</label><input type="email" name="email"></div>
-                <div class="form-group"><label>Teléfono</label><input type="text" name="telefono"></div>
-                <div class="form-group"><label>Contraseña</label><input type="password" name="password" required></div>
-                <div class="form-actions">
-                    <button type="submit" class="btn btn-success">Agregar Docente</button>
-                    <button type="button" class="btn btn-danger" onclick="document.getElementById('modalCrear').classList.remove('active')">Cancelar</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <div id="modalEditar" class="modal-overlay">
-        <div class="modal">
-            <h3>Editar Docente</h3>
-            <form method="POST">
-                <?php echo csrf_campo(); ?>
-                <input type="hidden" name="accion" value="editar">
-                <input type="hidden" name="id" id="editId">
-                <div class="form-group"><label>C.I.</label><input type="text" name="ci" id="editCi" required></div>
-                <div class="form-group"><label>Nombre</label><input type="text" name="nombre" id="editNombre" required></div>
-                <div class="form-group"><label>Email</label><input type="email" name="email" id="editEmail"></div>
-                <div class="form-group"><label>Teléfono</label><input type="text" name="telefono" id="editTelefono"></div>
-                <div class="form-group">
-                    <label>Estado</label>
-                    <select name="estado" id="editEstado">
-                        <option value="activo">Activo</option>
-                        <option value="inactivo">Inactivo</option>
-                    </select>
-                </div>
-                <div class="form-actions">
-                    <button type="submit" class="btn btn-success">Guardar</button>
-                    <button type="button" class="btn btn-danger" onclick="document.getElementById('modalEditar').classList.remove('active')">Cancelar</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <script>
-    function editarDocente(id, ci, nombre, email, telefono, estado) {
-        document.getElementById('editId').value = id;
-        document.getElementById('editCi').value = ci;
-        document.getElementById('editNombre').value = nombre;
-        document.getElementById('editEmail').value = email;
-        document.getElementById('editTelefono').value = telefono;
-        document.getElementById('editEstado').value = estado;
-        document.getElementById('modalEditar').classList.add('active');
-    }
-    (function(){ var q=document.getElementById('qDocentes'); var tb=document.getElementById('tbodyDocentes'); if(q&&tb){ q.addEventListener('input',function(){ var t=q.value.toLowerCase(); Array.from(tb.rows).forEach(function(r){ r.style.display=r.textContent.toLowerCase().includes(t)?'':'none'; }); }); } document.querySelectorAll('.modal-overlay').forEach(function(m){ m.addEventListener('click',function(e){ if(e.target===m) m.classList.remove('active'); }); }); })();
-    </script>
+        <?php if ($totalPages > 1): ?>
+        <nav class="pagination" style="display:flex;justify-content:center;gap:6px;margin-top:16px;flex-wrap:wrap;">
+            <?php if ($page > 1): ?>
+                <a class="btn btn-ghost" href="?page=<?php echo $page-1; ?><?php echo $search?'&q='.urlencode($search):''; ?>">« Anterior</a>
+            <?php endif; ?>
+            <?php
+            $start = max(1, $page - 2);
+            $end = min($totalPages, $page + 2);
+            for ($p = $start; $p <= $end; $p++):
+            ?>
+                <a class="btn <?php echo $p === $page ? 'btn-primary' : 'btn-ghost'; ?>" href="?page=<?php echo $p; ?><?php echo $search?'&q='.urlencode($search):''; ?>"><?php echo $p; ?></a>
+            <?php endfor; ?>
+            <?php if ($page < $totalPages): ?>
+                <a class="btn btn-ghost" href="?page=<?php echo $page+1; ?><?php echo $search?'&q='.urlencode($search):''; ?>">Siguiente »</a>
+            <?php endif; ?>
+        </nav>
+        <p style="text-align:center;color:var(--text-3);font-size:12px;margin-top:8px;">Mostrando <?php echo $offset+1; ?>–<?php echo min($offset+$limit,$total); ?> de <?php echo $total; ?> docentes</p>
+        <?php endif; ?>
 <?php require_once __DIR__ . '/../../includes/layout_footer.php'; ?>

@@ -35,23 +35,17 @@ if (isset($_SESSION['user_id'])) {
     <?php endif; ?>
     <form action="<?= BASE_URL ?>/controller/LoginController.php" method="POST" class="login-form">
       <?php echo csrf_campo(); ?>
-      
-      <!-- Input Usuario -->
       <div class="input-group">
-        <!-- Icono SVG inline seguro -->
         <svg class="input-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
-        <input type="text" name="username" placeholder="Usuario o Correo" required autofocus autocomplete="off">
+        <input type="text" name="username" placeholder="C.I." required autofocus autocomplete="off">
       </div>
-
-      <!-- Input Contraseña -->
       <div class="input-group">
-        <!-- Icono SVG inline seguro (Candado) -->
         <svg class="input-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
         <input type="password" name="password" placeholder="Contraseña" required>
       </div>
-
       <button type="submit" class="btn-login">Iniciar Sesión</button>
     </form>
+    <p style="text-align:center;font-size:12px;opacity:.7;margin-top:10px;">Admin: usuario + contraseña &nbsp;|&nbsp; Docente/Estudiante: C.I. + contraseña</p>
   </div>
 </div>
 <script src="<?= BASE_URL ?>/js/fondo.js"></script>

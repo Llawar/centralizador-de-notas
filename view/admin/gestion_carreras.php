@@ -50,7 +50,7 @@ require_once __DIR__ . '/../../includes/layout_header.php';
                     <?php foreach ($carreras as $c): ?>
                     <tr>
                         <td><?php echo (int) $c['id']; ?></td>
-                        <td><a href="<?= BASE_URL ?>/view/admin/ver_carrera.php?id=<?php echo (int) $c['id']; ?>" style="color:var(--accent-2);text-decoration:none;"><?php echo htmlspecialchars($c['nombre']); ?></a></td>
+                        <td><?php echo htmlspecialchars($c['nombre']); ?></td>
                         <td><?php echo (int) $c['duracion']; ?></td>
                         <td><?php echo $c['tipo'] === 'semestral' ? 'Semestral' : 'Anual'; ?></td>
                         <td><?php echo $c['tipo'] === 'semestral' ? '2 por semestre' : '4 al año'; ?></td>
